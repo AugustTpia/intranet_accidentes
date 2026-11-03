@@ -1,0 +1,18 @@
+Agregar Línea de Sistema Intranet con la IP del equipo que funciona como servidor y ajustar el nombre según el nombre del sistema
+
+# Sistema Intranet
+172.16.254.23	misistema.local
+
+
+Limpiar DNS
+ipconfig /flushdns
+
+Prueba de conección de Nuevo Equipo Configurado con el Servidor en PowerShell como administrador // Se puede cambiar la IP si es que es diferente
+Test-NetConnection 172.16.254.23 -Port 8000
+
+Otra prueba de CMD de conexión
+ping misistema.local
+
+Si no existe conexión revisar el Firewall del servidor, que permita la conexión de nuevos equipos, tanto entrada como salida
+CMD:
+netsh advfirewall firewall add rule name="Waitress Web App" dir=in action=allow protocol=TCP localport=8000

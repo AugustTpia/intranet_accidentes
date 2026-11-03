@@ -1,0 +1,50 @@
+services:
+  db:
+    image: mysql:8.0
+    container_name: accidentes_db  # Le asignamos nombre fijo para orden
+    networks:
+      - red_publica_nginx          # <-- Conectado a la red externa
+    restart: always
+    environment:
+      MYSQL_DATABASE: ${DB_NAME:-ajustador_db}
+      MYSQL_USER: ${DB_USER:-django_user}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-django_pass}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-root_pass}
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    # === 1. AGREGAMOS ESTE BLOQUE DE CONTROL DE SALUD ===
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${DB_ROOT_PASSWORD:-root_pass}"]
+      interval: 5s   # Revisa cada 5 segundos si ya despertó MySQL
+      timeout: 2s    # Si tarda más de 2 segundos en responder el ping, cuenta como intento fallido
+      retries: 3     # Si falla 3 veces seguidas, se considera "unhealthy"
+
+  web:
+    build: .
+    container_name: web            # Buscado por el Nginx Central como http://web:8000
+    restart: always
+    env_file: .env
+    networks:
+      - red_publica_nginx          # <-- Conectado a la red externa
+    environment:
+      - DB_HOST=db
+      - DB_PORT=3306
+      - DEBUG=0
+    # === 2. MODIFICAMOS ESTA LÍNEA PARA QUE ESPERE EL ESTADO SALUDABLE ===
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - static_volume:/app/staticfiles
+      - ./media:/app/media
+
+# Declaramos la red como externa exactamente igual
+networks:
+  red_publica_nginx:
+    external: true
+
+volumes:
+  mysql_data:
+  static_volume:

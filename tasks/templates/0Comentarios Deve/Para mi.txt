@@ -1,0 +1,9 @@
+No ingresar los archivos del desarrollo en sub carpetas, ejemplo:
+carpeta de plantillas: templates
+manera correcta: crear y dejar el archivo de la extensión que sea
+(html, py, etc). La ruta sería template/example.html
+
+manera incorrecta: templates/example/templates/example.html
+
+
+IMPORTANTEEE!!!

@@ -1,0 +1,1 @@
+CreateObject("Wscript.Shell").Run "cmd /c ""C:\Users\atbte\OneDrive\Escritorio\intranet\intranet_accidentes\Server_init.bat""", 0, False

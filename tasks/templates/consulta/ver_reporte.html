@@ -1,0 +1,316 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Historial Reportes</title>
+    <link rel="icon" href="https://media.cylex.mx/companies/1167/0462/logo/logo8853855.jpg" type="image/x-icon">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script src="https://cdn.lordicon.com/lordicon.js"></script>
+
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" 
+          integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" 
+          crossorigin=""/>
+
+    <link rel="stylesheet" href="{% static 'tasks/css/plantilla.css' %}">
+    <link rel="stylesheet" href="{% static 'tasks/css/ver_reportes.css' %}">
+    <link rel="stylesheet" href="{% static 'tasks/css/style_map.css' %}">
+    
+</head>
+<body>
+    <header class="header">
+        <div class="header-container">
+            <div class="logo-container">
+                <img src="https://media.cylex.mx/companies/1167/0462/logo/logo8853855.jpg" alt="Logo de la empresa">
+                <div class="company-name">Autotransportes Banderilla</div>
+            </div>
+            
+            <div class="menu-toggle" id="menuToggle">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+            
+            <nav class="nav-menu" id="navMenu">
+                
+                <div class="menu-header">
+                    <div class="menu-user-info">
+                        <div class="menu-user-avatar">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <div class="menu-user-details">
+                            <h3>{{ user.username }}</h3>
+                            <p>Consultor - En línea</p>
+                        </div>
+                    </div>
+                </div>
+
+                <ul class="nav-list">
+                    <li class="nav-item">
+                        <a href="{% url 'home_view' %}">
+                            <i class="fas fa-home"></i>
+                            <span>Inicio</span>
+                        </a>
+                    </li>
+                    <li class="nav-item has-dropdown active">
+                        <a href="#">
+                            <i class="fas fa-search"></i>
+                            <span>Consulta de Reportes</span>
+                        </a>
+                        <ul class="submenu">
+                            <li class="submenu-item active">
+                                <a href="{% url 'ver_reportes' %}">
+                                    <i class="fas fa-list"></i>
+                                    Ver Reportes
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                    
+                    <div class="menu-divider"></div>
+                    
+                    <li class="nav-item">
+                        <a href="{% url 'reporte_estadisticas' %}">
+                            <i class="fas fa-chart-bar"></i>
+                            <span>Estadísticas</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{% url 'top_lists' %}">
+                            <i class="fas fa-list-ol"></i>
+                            <span>Tabla de Posiciones</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{% url 'mapa_general' %}">
+                            <i class="fas fa-map"></i>
+                            <span>Mapa</span>
+                        </a>
+                    </li>
+                </ul>
+
+                <div class="menu-footer">
+                    <button class="logout-btn" onclick="window.location.href='{% url 'login_view' %}'">
+                        <i class="fas fa-sign-out-alt"></i>
+                        Cerrar Sesión
+                    </button>
+                </div>
+
+            </nav>
+        </div>
+    </header>
+
+    <div class="menu-overlay" id="menuOverlay"></div>
+
+    <main class="main-content">
+        <div class="page-header-reportes">
+            <h1><i class="fas fa-file-alt"></i> Historial de Reportes</h1>
+        </div>
+
+        <div class="search-container">
+            <div class="search-bar">
+                <input type="text" id="searchInput" placeholder="Buscar reportes por folio, clave, operador...">
+            </div>
+        </div>
+
+        {% load humanize %}
+        <div class="reportes-container" id="reportesContainer">
+            {% for reporte in reportes %}
+                <div class="reporte" data-index="{{ forloop.counter0 }}">
+                    <div class="reporte-header">
+                        <h2 style="text-transform: uppercase;"><i class="fas fa-calendar-alt"></i> Reporte del {{reporte.fecha}}</h2>
+                        <span class="reporte-id"><i class="fas fa-hashtag"></i> {{ reporte.folio }}</span>
+                    </div>
+                    
+                    <div class="reporte-details">
+                        <div class="detail-item">
+                            <strong><i class="fas fa-key"></i> Clave</strong>
+                            <span style="text-transform: uppercase;">{{ reporte.clave }}</span>
+                        </div>
+                        <div class="detail-item">
+                            <strong><i class="fas fa-user"></i> Operador</strong>
+                            <span style="text-transform: uppercase;">{{ reporte.operador }}</span>
+                        </div>
+                        <div class="detail-item">
+                            <strong><i class="fas fa-user-tie"></i> Administrador</strong>
+                            <span style="text-transform: uppercase;">{{ reporte.administrador }}</span>
+                        </div>
+                        <div class="detail-item">
+                            <strong><i class="fas fa-route"></i> Ruta</strong>
+                            <span>{{reporte.ruta}}</span>
+                        </div>
+                        <div class="detail-item">
+                            <strong><i class="fas fa-car-crash"></i> Daño Vehículo</strong>
+                            <span style="text-transform: uppercase;">{{ reporte.damage_vehiculo }}</span>
+                        </div>
+                        <div class="detail-item">
+                            <strong><i class="fas fa-bus"></i> Daño Autobús</strong>
+                            <span style="text-transform: uppercase;">{{ reporte.damage_bus }}</span>
+                        </div>
+                        <div class="detail-item">
+                            <strong><i class="fas fa-users"></i> Daño Terceros 1</strong>
+                            <span style="text-transform: uppercase;">{{ reporte.damage_others }}</span>
+                        </div>
+                        <div class="detail-item">
+                            <strong><i class="fas fa-users"></i> Daño Terceros 2</strong>
+                            <span style="text-transform: uppercase;">{{ reporte.damage_others2 }}</span>
+                        </div>
+                        <div class="detail-item">
+                            <strong><i class="fas fa-users"></i> Daño Terceros 3</strong>
+                            <span style="text-transform: uppercase;">{{ reporte.damage_others3 }}</span>
+                        </div>
+                        <div class="detail-item">
+                            <strong><i class="fas fa-map-marker-alt"></i> Ubicación</strong>
+                            <span style="text-transform: uppercase;">{{ reporte.ubicacion }}</span>
+                        </div>
+                        <div class="detail-item">
+                            <strong><i class="fas fa-comment"></i> Observaciones</strong>
+                            <span style="text-transform: uppercase;">{{ reporte.observaciones }}</span>
+                        </div>
+                        <div class="detail-item">
+                            <strong><i class="fas fa-shield-alt"></i> Qualitas</strong>
+                            <span style="text-transform: uppercase;">{{ reporte.intervino }}</span>
+                        </div>
+                        <div class="detail-item">
+                            <strong><i class="fas fa-balance-scale"></i> Responsabilidad</strong>
+                            <span style="text-transform: uppercase;">{{ reporte.responsabilidad }}</span>
+                        </div>
+                        <div class="detail-item">
+                            <strong><i class="fas fa-dollar-sign"></i> Costo del Finiquito</strong>
+                            <span style="text-transform: uppercase;">$ {{ reporte.costo_finiquito|floatformat:2|intcomma }}</span>
+                        </div>
+                    </div>
+                    
+                    {% if reporte.tiene_coordenadas %}
+                    <div class="ubicacion-mapa-section">
+                        <div class="ubicacion-mapa-header">
+                            <h3>
+                                <i class="fas fa-map-marked-alt"></i>
+                                Ubicación del Incidente
+                            </h3>
+                            <button class="btn-ver-mapa" onclick="abrirMapaModal({{ forloop.counter0 }})">
+                                <i class="fas fa-map"></i>
+                                Ver en Mapa
+                            </button>
+                        </div>
+                        
+                        <div class="coordenadas-lista">
+                            {% for coord in reporte.coordenadas_list %}
+                            <div class="coordenada-item">
+                                <div class="coordenada-numero">{{ coord.id }}</div>
+                                <div class="coordenada-info">
+                                    <strong>Marcador #{{ coord.id }}:</strong> 
+                                    Lat: {{ coord.lat|floatformat:6 }}, 
+                                    Lng: {{ coord.lng|floatformat:6 }}
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        
+                        <div class="reporte-coordenadas-data" 
+                             data-coordenadas='{{ reporte.coordinates|safe }}'
+                             data-folio="{{ reporte.folio }}"
+                             style="display: none;">
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="ubicacion-mapa-section">
+                        <div class="ubicacion-mapa-header">
+                            <h3>
+                                <i class="fas fa-map-marked-alt"></i>
+                                Ubicación del Incidente
+                            </h3>
+                        </div>
+                        <div class="no-coordenadas">
+                            <i class="fas fa-info-circle"></i>
+                            No se registraron coordenadas para este reporte
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    {% if reporte.imagen1 or reporte.imagen2 or reporte.imagen3 or reporte.imagen4 or reporte.imagen5 or reporte.imagen6 %}
+                    <h3 class="imagenes-titulo">
+                        <i class="fas fa-images"></i> Imágenes del Reporte
+                    </h3>
+                    <div class="imagenes-container">
+                        {% if reporte.imagen1 %}
+                            <div class="imagen-thumbnail" onclick="openModal('{{ reporte.imagen1.url }}')">
+                                <div class="imagen-loading"><i class="fas fa-spinner"></i></div>
+                                <img src="{{ reporte.imagen1.url }}" alt="Imagen 1" loading="lazy">
+                            </div>
+                        {% endif %}
+                        {% if reporte.imagen2 %}
+                            <div class="imagen-thumbnail" onclick="openModal('{{ reporte.imagen2.url }}')">
+                                <div class="imagen-loading"><i class="fas fa-spinner"></i></div>
+                                <img src="{{ reporte.imagen2.url }}" alt="Imagen 2" loading="lazy">
+                            </div>
+                        {% endif %}
+                        {% if reporte.imagen3 %}
+                            <div class="imagen-thumbnail" onclick="openModal('{{ reporte.imagen3.url }}')">
+                                <div class="imagen-loading"><i class="fas fa-spinner"></i></div>
+                                <img src="{{ reporte.imagen3.url }}" alt="Imagen 3" loading="lazy">
+                            </div>
+                        {% endif %}
+                        {% if reporte.imagen4 %}
+                            <div class="imagen-thumbnail" onclick="openModal('{{ reporte.imagen4.url }}')">
+                                <div class="imagen-loading"><i class="fas fa-spinner"></i></div>
+                                <img src="{{ reporte.imagen4.url }}" alt="Imagen 4" loading="lazy">
+                            </div>
+                        {% endif %}
+                        {% if reporte.imagen5 %}
+                            <div class="imagen-thumbnail" onclick="openModal('{{ reporte.imagen5.url }}')">
+                                <div class="imagen-loading"><i class="fas fa-spinner"></i></div>
+                                <img src="{{ reporte.imagen5.url }}" alt="Imagen 5" loading="lazy">
+                            </div>
+                        {% endif %}
+                        {% if reporte.imagen6 %}
+                            <div class="imagen-thumbnail" onclick="openModal('{{ reporte.imagen6.url }}')">
+                                <div class="imagen-loading"><i class="fas fa-spinner"></i></div>
+                                <img src="{{ reporte.imagen6.url }}" alt="Imagen 6" loading="lazy">
+                            </div>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                </div>
+            {% endfor %}
+        </div>
+
+        <div class="pagination" id="paginationContainer"></div>
+
+        <div class="btn-container">
+            <button class="btn-regresar" onclick="window.history.back()">
+                <i class="fas fa-arrow-left"></i> Regresar
+            </button>
+        </div>
+    </main>
+
+    <div id="myModal" class="modal">
+        <span class="close" onclick="closeModal()">&times;</span>
+        <img class="modal-content" id="modalImage">
+    </div>
+
+    <div id="mapaModal" class="mapa-modal">
+        <div class="mapa-modal-content">
+            <div class="mapa-modal-header">
+                <h3><i class="fas fa-map-marked-alt"></i> <span id="mapaModalTitle">Ubicación del Incidente</span></h3>
+                <button class="mapa-modal-close" onclick="cerrarMapaModal()">&times;</button>
+            </div>
+            <div class="mapa-modal-body">
+                <div id="mapaViewCanvas" class="mapa-view-canvas"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" 
+            integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" 
+            crossorigin=""></script>
+
+    <script src="{% static 'tasks/js/menu.js' %}"></script>
+    <script src="{% static 'tasks/js/pagination.js' %}"></script>
+    <script src="{% static 'tasks/js/format_ver_reporte.js'%}"></script>
+    
+</body>
+</html>

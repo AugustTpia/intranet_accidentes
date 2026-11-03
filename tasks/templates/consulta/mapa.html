@@ -1,0 +1,1108 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mapa General de Incidentes</title>
+    <link rel="icon" href="https://media.cylex.mx/companies/1167/0462/logo/logo8853855.jpg" type="image/x-icon">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" 
+          integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" 
+          crossorigin=""/>
+    
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
+    
+    <link rel="stylesheet" href="{% static 'tasks/css/plantilla.css' %}">
+    <link rel="stylesheet" href="{% static 'tasks/css/mapa_general.css' %}">
+    <link rel="stylesheet" href="{% static 'tasks/css/cluster.css' %}">
+
+    <style>
+        /* Estilos para el modal de detalle */
+        .detalle-modal {
+            display: none;
+            position: fixed;
+            z-index: 10000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.6);
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .detalle-modal-content {
+            background-color: #fff;
+            margin: 2% auto;
+            padding: 0;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 1000px;
+            max-height: 90vh;
+            overflow: hidden;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            animation: slideDown 0.3s ease;
+        }
+
+        @keyframes slideDown {
+            from {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .detalle-modal-header {
+            background: linear-gradient(135deg, #0a4ba1ff 0%, #1565c0 100%);
+            color: white;
+            padding: 20px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-radius: 12px 12px 0 0;
+        }
+
+        .detalle-modal-header h3 {
+            margin: 0;
+            font-size: 24px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .detalle-modal-close {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            font-size: 32px;
+            cursor: pointer;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .detalle-modal-close:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: rotate(90deg);
+        }
+
+        .detalle-modal-body {
+            padding: 30px;
+            max-height: calc(90vh - 100px);
+            overflow-y: auto;
+        }
+
+        .detalle-section {
+            margin-bottom: 30px;
+        }
+
+        .detalle-section-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #0a4ba1ff;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+        .detalle-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .detalle-item {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 3px solid #0a4ba1ff;
+        }
+
+        .detalle-item-label {
+            font-size: 12px;
+            color: #666;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 5px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .detalle-item-value {
+            font-size: 15px;
+            color: #333;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .imagenes-detalle-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .imagen-detalle-thumbnail {
+            position: relative;
+            aspect-ratio: 1;
+            border-radius: 8px;
+            overflow: hidden;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .imagen-detalle-thumbnail:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+        }
+
+        .imagen-detalle-thumbnail img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .imagen-numero {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: rgba(10, 75, 161, 0.9);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .no-imagenes {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+            font-style: italic;
+        }
+
+        /* Modal de imagen ampliada */
+        .imagen-modal {
+            display: none;
+            position: fixed;
+            z-index: 11000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.9);
+            animation: fadeIn 0.3s ease;
+        }
+
+        .imagen-modal-content {
+            margin: auto;
+            display: block;
+            max-width: 90%;
+            max-height: 90%;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            animation: zoomIn 0.3s ease;
+        }
+
+        @keyframes zoomIn {
+            from {
+                transform: translate(-50%, -50%) scale(0.5);
+            }
+            to {
+                transform: translate(-50%, -50%) scale(1);
+            }
+        }
+
+        .imagen-modal-close {
+            position: absolute;
+            top: 20px;
+            right: 40px;
+            color: white;
+            font-size: 40px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            z-index: 11001;
+        }
+
+        .imagen-modal-close:hover {
+            color: #ff4444;
+            transform: scale(1.2);
+        }
+
+        /* Scrollbar personalizado para el modal */
+        .detalle-modal-body::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .detalle-modal-body::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+
+        .detalle-modal-body::-webkit-scrollbar-thumb {
+            background: #0a4ba1ff;
+            border-radius: 10px;
+        }
+
+        .detalle-modal-body::-webkit-scrollbar-thumb:hover {
+            background: #083a7f;
+        }
+
+        .coordenadas-detalle-lista {
+            display: grid;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .coordenada-detalle-item {
+            background: #f8f9fa;
+            padding: 12px 15px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            border-left: 3px solid #28a745;
+        }
+
+        .coordenada-detalle-numero {
+            background: #0a4ba1ff;
+            color: white;
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .coordenada-detalle-info {
+            flex: 1;
+            font-size: 14px;
+            color: #555;
+        }
+
+        .no-coordenadas-detalle {
+            text-align: center;
+            padding: 20px;
+            color: #999;
+            font-style: italic;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="header-container">
+            <div class="logo-container">
+                <img src="https://media.cylex.mx/companies/1167/0462/logo/logo8853855.jpg" alt="Logo de la empresa">
+                <div class="company-name">Autotransportes Banderilla</div>
+            </div>
+            
+            <div class="menu-toggle" id="menuToggle">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+            
+            <nav class="nav-menu" id="navMenu">
+                
+                <div class="menu-header">
+                    <div class="menu-user-info">
+                        <div class="menu-user-avatar">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <div class="menu-user-details">
+                            <h3>{{ user.username }}</h3>
+                            <p>Consultor - En línea</p>
+                        </div>
+                    </div>
+                </div>
+
+                <ul class="nav-list">
+                    <li class="nav-item">
+                        <a href="{% url 'home_view' %}">
+                            <i class="fas fa-home"></i>
+                            <span>Inicio</span>
+                        </a>
+                    </li>
+                    <li class="nav-item has-dropdown">
+                        <a href="#">
+                            <i class="fas fa-search"></i>
+                            <span>Consulta de Reportes</span>
+                        </a>
+                        <ul class="submenu">
+                            <li class="submenu-item">
+                                <a href="{% url 'ver_reportes' %}">
+                                    <i class="fas fa-list"></i>
+                                    Ver Reportes
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                    
+                    <div class="menu-divider"></div>
+                    
+                    <li class="nav-item">
+                        <a href="{% url 'reporte_estadisticas' %}">
+                            <i class="fas fa-chart-bar"></i>
+                            <span>Estadísticas</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{% url 'top_lists' %}">
+                            <i class="fas fa-list-ol"></i>
+                            <span>Tabla de Posiciones</span>
+                        </a>
+                    </li>
+                    <li class="nav-item active">
+                        <a href="{% url 'mapa_general' %}">
+                            <i class="fas fa-map"></i>
+                            <span>Mapa</span>
+                        </a>
+                    </li>
+                </ul>
+
+                <div class="menu-footer">
+                    <button class="logout-btn" onclick="window.location.href='{% url 'login_view' %}'">
+                        <i class="fas fa-sign-out-alt"></i>
+                        Cerrar Sesión
+                    </button>
+                </div>
+
+            </nav>
+        </div>
+    </header>
+
+
+    <div class="menu-overlay" id="menuOverlay" style="z-index: 998;"></div>
+
+    <main class="main-content">
+        <div class="top-bar">
+            <div class="page-title">
+                <i class="fas fa-map-marked-alt"></i>
+                Mapa General de Incidentes
+            </div>
+            
+            <div class="stats-mini">
+                <div class="stat-mini">
+                    <i class="fas fa-file-alt"></i>
+                    <div class="stat-mini-content">
+                        <span>Reportes</span>
+                        <strong id="totalReportes">{{ reportes|length }}</strong>
+                    </div>
+                </div>
+                <div class="stat-mini">
+                    <i class="fas fa-map-marker-alt"></i>
+                    <div class="stat-mini-content">
+                        <span>Marcadores</span>
+                        <strong id="totalMarcadores">0</strong>
+                    </div>
+                </div>
+                <div class="stat-mini">
+                    <i class="fas fa-eye"></i>
+                    <div class="stat-mini-content">
+                        <span>Mostrando</span>
+                        <strong id="mostrandoReportes">0</strong>
+                    </div>
+                </div>
+            </div>
+
+            <button class="btn btn-mostrar-todos" onclick="mostrarTodos()">
+                <i class="fas fa-globe"></i>
+                Mostrar Todos
+            </button>
+            
+            <button class="btn-back" onclick="window.history.back()">
+                <i class="fas fa-arrow-left"></i>
+                Regresar
+            </button>
+
+        </div>
+
+        <div class="content-wrapper">
+            <div class="side-panel" id="sidePanel">
+                <div class="filters-section">
+                    <div class="section-title">
+                        <i class="fas fa-filter"></i>
+                        Filtros
+                    </div>
+                    
+                    <div class="filter-group">
+                        <label><i class="fas fa-hashtag"></i> Folio</label>
+                        <input type="text" id="filtroFolio" placeholder="Buscar por folio...">
+                    </div>
+                    
+                    <div class="filter-group">
+                        <label><i class="fas fa-key"></i> Clave</label>
+                        <select id="filtroClave">
+                            <option value="">Todas las claves</option>
+                            {% for clave in claves_unicas %}
+                            <option value="{{ clave }}">{{ clave }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="filter-group">
+                        <label><i class="fas fa-route"></i> Ruta</label>
+                        <select id="filtroRuta">
+                            <option value="">Todas las rutas</option>
+                            {% for ruta in rutas_unicas %}
+                            <option value="{{ ruta }}">{{ ruta }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="filter-group">
+                        <label><i class="fas fa-calendar-alt"></i> Fecha Inicio</label>
+                        <input type="date" id="filtroFechaInicio" placeholder="Fecha inicio">
+                    </div>
+                    
+                    <div class="filter-group">
+                        <label><i class="fas fa-calendar-check"></i> Fecha Fin</label>
+                        <input type="date" id="filtroFechaFin" placeholder="Fecha fin">
+                    </div>
+                    
+                    <div class="filter-actions">
+                        <button class="btn btn-secondary" onclick="limpiarFiltros()">
+                            <i class="fas fa-eraser"></i>
+                            Limpiar
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="map-area" id="mapArea">
+                <button class="panel-toggle" id="panelToggle" onclick="togglePanel()" title="Mostrar/Ocultar filtros">
+                    <i class="fas fa-chevron-left" id="toggleIcon"></i>
+                </button>
+                
+                <div class="map-container">
+                    <div id="map-canvas"></div>
+                    
+                    <div class="cluster-toggle">
+                        <label>
+                            <input type="checkbox" id="clusterToggle" checked onchange="toggleClustering()">
+                            <i class="fas fa-layer-group"></i>
+                            Agrupar marcadores
+                        </label>
+                    </div>
+                    
+                    <div class="map-controls">
+                        <div class="map-controls-title">
+                            <i class="fas fa-info-circle"></i>
+                            Información
+                        </div>
+                        <div class="map-stat">
+                            <span class="map-stat-label">Marcadores:</span>
+                            <span class="map-stat-value" id="marcadoresVisibles">0</span>
+                        </div>
+                        <div class="map-stat">
+                            <span class="map-stat-label">Reportes:</span>
+                            <span class="map-stat-value" id="reportesFiltrados">0</span>
+                        </div>
+                        <button class="btn btn-mostrar-todos" onclick="mostrarTodos()">
+                            <i class="fas fa-globe"></i>
+                            Mostrar Todos
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Modal de Detalle del Reporte -->
+    <div id="detalleModal" class="detalle-modal">
+        <div class="detalle-modal-content">
+            <div class="detalle-modal-header">
+                <h3><i class="fas fa-file-alt"></i> <span id="detalleModalTitle">Detalle del Reporte</span></h3>
+                <button class="detalle-modal-close" onclick="cerrarDetalleModal()">&times;</button>
+            </div>
+            <div class="detalle-modal-body" id="detalleModalBody">
+                <!-- El contenido se llenará dinámicamente -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para ver imagen ampliada -->
+    <div id="imagenModal" class="imagen-modal">
+        <span class="imagen-modal-close" onclick="cerrarImagenModal()">&times;</span>
+        <img class="imagen-modal-content" id="imagenAmpliada">
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" 
+            integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" 
+            crossorigin=""></script>
+    
+    <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+
+    <script src="{% static 'tasks/js/menu.js' %}"></script>
+    
+    <script>
+        var reportesData = {{ reportes_json|safe }};
+        var map;
+        var markers = [];
+        var markerClusterGroup;
+        var reportesFiltrados = reportesData;
+        var panelCollapsed = false;
+        var clusteringEnabled = true;
+        
+        function togglePanel() {
+            var panel = document.getElementById('sidePanel');
+            var icon = document.getElementById('toggleIcon');
+            panelCollapsed = !panelCollapsed;
+            
+            if (panelCollapsed) {
+                panel.classList.add('collapsed');
+                icon.className = 'fas fa-chevron-right';
+            } else {
+                panel.classList.remove('collapsed');
+                icon.className = 'fas fa-chevron-left';
+            }
+            
+            setTimeout(function() {
+                if (map) {
+                    map.invalidateSize();
+                }
+            }, 300);
+        }
+        
+        function initMap() {
+            map = L.map('map-canvas').setView([19.5333673, -96.9186144], 13);
+            
+             L.tileLayer('https://{s}.tile-cyclosm.openstreetmap.fr/cyclosm/{z}/{x}/{y}.png', {
+                attribution: '<a href="https://github.com/cyclosm/cyclosm-cartocss-style/releases" title="CyclOSM - Open Bicycle render">CyclOSM</a> | Map data: &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+                maxZoom: 20
+            }).addTo(map);
+            
+            markerClusterGroup = L.markerClusterGroup({
+                maxClusterRadius: 4,
+                spiderfyOnMaxZoom: true, 
+                showCoverageOnHover: false, 
+                zoomToBoundsOnClick: true, 
+                disableClusteringAtZoom: 18, 
+                iconCreateFunction: function(cluster) {
+
+                    var childCount = cluster.getChildCount();
+                    var c = ' marker-cluster-';
+                    
+                    if (childCount < 10) {
+                        c += 'small';
+                    } else if (childCount < 25) {
+                        c += 'medium';
+                    } else {
+                        c += 'large';
+                    }
+                    
+                    return new L.DivIcon({ 
+                        html: '<div><span>' + childCount + '</span></div>', 
+                        className: 'marker-cluster' + c, 
+                        iconSize: new L.Point(40, 40) 
+                    });
+                }
+            });
+            
+            map.addLayer(markerClusterGroup);
+            
+            mostrarTodos();
+        }
+        
+        function toggleClustering() {
+            clusteringEnabled = document.getElementById('clusterToggle').checked;
+            mostrarReportesEnMapa(reportesFiltrados);
+        }
+        
+        function limpiarMarcadores() {
+            markerClusterGroup.clearLayers();
+            
+            markers.forEach(function(marker) {
+                if (map.hasLayer(marker)) {
+                    map.removeLayer(marker);
+                }
+            });
+            markers = [];
+        }
+        
+        function parsearFecha(fechaStr) {
+            if (!fechaStr) return null;
+            
+            var partes = fechaStr.split('/');
+            if (partes.length === 3) {
+                var dia = parseInt(partes[0], 10); 
+                var mes = parseInt(partes[1], 10) - 1;
+                var anio = parseInt(partes[2], 10);
+                
+                return new Date(anio, mes, dia);
+            }
+            
+            return new Date(fechaStr);
+        }
+        
+        function formatearMoneda(valor) {
+            return new Intl.NumberFormat('es-MX', {
+                style: 'currency',
+                currency: 'MXN'
+            }).format(valor);
+        }
+        
+        function abrirDetalleModal(reporte) {
+            var modal = document.getElementById('detalleModal');
+            var modalBody = document.getElementById('detalleModalBody');
+            var modalTitle = document.getElementById('detalleModalTitle');
+            
+            modalTitle.textContent = 'Reporte ' + reporte.folio;
+            
+            var imagenesHtml = '';
+            if (reporte.imagenes && reporte.imagenes.length > 0) {
+                imagenesHtml = '<div class="imagenes-detalle-container">';
+                reporte.imagenes.forEach(function(imagen, index) {
+                    imagenesHtml += `
+                        <div class="imagen-detalle-thumbnail" onclick="ampliarImagen('${imagen}')">
+                            <div class="imagen-numero">#${index + 1}</div>
+                            <img src="${imagen}" alt="Imagen ${index + 1}" loading="lazy">
+                        </div>
+                    `;
+                });
+                imagenesHtml += '</div>';
+            } else {
+                imagenesHtml = '<div class="no-imagenes"><i class="fas fa-image"></i> No hay imágenes disponibles</div>';
+            }
+            
+            var coordenadasHtml = '';
+            if (reporte.coordenadas && reporte.coordenadas.length > 0) {
+                coordenadasHtml = '<div class="coordenadas-detalle-lista">';
+                reporte.coordenadas.forEach(function(coord) {
+                    coordenadasHtml += `
+                        <div class="coordenada-detalle-item">
+                            <div class="coordenada-detalle-numero">${coord.id}</div>
+                            <div class="coordenada-detalle-info">
+                                <strong>Marcador #${coord.id}:</strong> 
+                                Lat: ${coord.lat.toFixed(6)}, Lng: ${coord.lng.toFixed(6)}
+                            </div>
+                        </div>
+                    `;
+                });
+                coordenadasHtml += '</div>';
+            } else {
+                coordenadasHtml = '<div class="no-coordenadas-detalle"><i class="fas fa-info-circle"></i> No se registraron coordenadas</div>';
+            }
+            
+            modalBody.innerHTML = `
+                <div class="detalle-section">
+                    <div class="detalle-section-title">
+                        <i class="fas fa-info-circle"></i>
+                        Información General
+                    </div>
+                    <div class="detalle-grid">
+                        <div class="detalle-item">
+                            <div class="detalle-item-label"><i class="fas fa-calendar-alt"></i> Fecha</div>
+                            <div class="detalle-item-value">${reporte.fecha}</div>
+                        </div>
+                        <div class="detalle-item">
+                            <div class="detalle-item-label"><i class="fas fa-hashtag"></i> Folio</div>
+                            <div class="detalle-item-value">${reporte.folio}</div>
+                        </div>
+                        <div class="detalle-item">
+                            <div class="detalle-item-label"><i class="fas fa-key"></i> Clave</div>
+                            <div class="detalle-item-value">${reporte.clave}</div>
+                        </div>
+                        <div class="detalle-item">
+                            <div class="detalle-item-label"><i class="fas fa-user"></i> Operador</div>
+                            <div class="detalle-item-value">${reporte.operador}</div>
+                        </div>
+                        <div class="detalle-item">
+                            <div class="detalle-item-label"><i class="fas fa-user-tie"></i> Administrador</div>
+                            <div class="detalle-item-value">${reporte.administrador || 'N/A'}</div>
+                        </div>
+                        <div class="detalle-item">
+                            <div class="detalle-item-label"><i class="fas fa-route"></i> Ruta</div>
+                            <div class="detalle-item-value">${reporte.ruta}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="detalle-section">
+                    <div class="detalle-section-title">
+                        <i class="fas fa-car-crash"></i>
+                        Daños Reportados
+                    </div>
+                    <div class="detalle-grid">
+                        <div class="detalle-item">
+                            <div class="detalle-item-label"><i class="fas fa-car"></i> Daño Vehículo</div>
+                            <div class="detalle-item-value">${reporte.damage_vehiculo || 'N/A'}</div>
+                        </div>
+                        <div class="detalle-item">
+                            <div class="detalle-item-label"><i class="fas fa-bus"></i> Daño Autobús</div>
+                            <div class="detalle-item-value">${reporte.damage_bus || 'N/A'}</div>
+                        </div>
+                        <div class="detalle-item">
+                            <div class="detalle-item-label"><i class="fas fa-users"></i> Daño Terceros 1</div>
+                            <div class="detalle-item-value">${reporte.damage_others || 'N/A'}</div>
+                        </div>
+                        <div class="detalle-item">
+                            <div class="detalle-item-label"><i class="fas fa-users"></i> Daño Terceros 2</div>
+                            <div class="detalle-item-value">${reporte.damage_others2 || 'N/A'}</div>
+                        </div>
+                        <div class="detalle-item">
+                            <div class="detalle-item-label"><i class="fas fa-users"></i> Daño Terceros 3</div>
+                            <div class="detalle-item-value">${reporte.damage_others3 || 'N/A'}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="detalle-section">
+                    <div class="detalle-section-title">
+                        <i class="fas fa-file-alt"></i>
+                        Información Adicional
+                    </div>
+                    <div class="detalle-grid">
+                        <div class="detalle-item">
+                            <div class="detalle-item-label"><i class="fas fa-map-marker-alt"></i> Ubicación</div>
+                            <div class="detalle-item-value">${reporte.ubicacion || 'N/A'}</div>
+                        </div>
+                        <div class="detalle-item">
+                            <div class="detalle-item-label"><i class="fas fa-shield-alt"></i> Qualitas</div>
+                            <div class="detalle-item-value">${reporte.intervino || 'N/A'}</div>
+                        </div>
+                        <div class="detalle-item">
+                            <div class="detalle-item-label"><i class="fas fa-balance-scale"></i> Responsabilidad</div>
+                            <div class="detalle-item-value">${reporte.responsabilidad || 'N/A'}</div>
+                        </div>
+                        <div class="detalle-item">
+                            <div class="detalle-item-label"><i class="fas fa-dollar-sign"></i> Costo Finiquito</div>
+                            <div class="detalle-item-value">${reporte.costo_finiquito ? formatearMoneda(reporte.costo_finiquito) : 'N/A'}</div>
+                        </div>
+                    </div>
+                    ${reporte.observaciones ? `
+                    <div class="detalle-item" style="margin-top: 15px;">
+                        <div class="detalle-item-label"><i class="fas fa-comment"></i> Observaciones</div>
+                        <div class="detalle-item-value">${reporte.observaciones}</div>
+                    </div>
+                    ` : ''}
+                </div>
+
+                <div class="detalle-section">
+                    <div class="detalle-section-title">
+                        <i class="fas fa-map-marked-alt"></i>
+                        Ubicación del Incidente
+                    </div>
+                    ${coordenadasHtml}
+                </div>
+
+                <div class="detalle-section">
+                    <div class="detalle-section-title">
+                        <i class="fas fa-images"></i>
+                        Imágenes del Reporte
+                    </div>
+                    ${imagenesHtml}
+                </div>
+            `;
+            
+            modal.style.display = 'block';
+        }
+        
+        function cerrarDetalleModal() {
+            document.getElementById('detalleModal').style.display = 'none';
+        }
+        
+        function ampliarImagen(url) {
+            var modal = document.getElementById('imagenModal');
+            var img = document.getElementById('imagenAmpliada');
+            img.src = url;
+            modal.style.display = 'block';
+        }
+        
+        function cerrarImagenModal() {
+            document.getElementById('imagenModal').style.display = 'none';
+        }
+        
+        window.onclick = function(event) {
+            var detalleModal = document.getElementById('detalleModal');
+            var imagenModal = document.getElementById('imagenModal');
+            
+            if (event.target == detalleModal) {
+                cerrarDetalleModal();
+            }
+            if (event.target == imagenModal) {
+                cerrarImagenModal();
+            }
+        }
+        
+        function mostrarReportesEnMapa(reportes) {
+            limpiarMarcadores();
+            
+            if (reportes.length === 0) {
+                document.getElementById('marcadoresVisibles').textContent = '0';
+                return;
+            }
+            
+            var totalMarcadores = 0;
+            
+            reportes.forEach(function(reporte) {
+                if (!reporte.coordenadas || reporte.coordenadas.length === 0) {
+                    return;
+                }
+                
+                var coord = reporte.coordenadas[0];
+                var coordenadasCount = reporte.coordenadas.length;
+                
+                var customIcon = L.divIcon({
+                    html: '<div class="custom-marker">' + coord.id + '</div>',
+                    className: '',
+                    iconSize: [35, 35],
+                    iconAnchor: [17, 17]
+                });
+                
+                var marker = L.marker([coord.lat, coord.lng], {
+                    icon: customIcon
+                });
+                
+                var infoContent = `
+                    <div style="padding: 10px; min-width: 200px;">
+                        <h4 style="margin: 0 0 10px 0; color: #0a4ba1ff;">
+                            <i class="fas fa-file-alt"></i> Folio: ${reporte.folio}
+                        </h4>
+                        <p style="margin: 5px 0;"><strong>Marcador:</strong> #${coord.id}</p>
+                        ${coordenadasCount > 1 ? 
+                            `<p style="margin: 5px 0; color: #28a745;"><strong><i class="fas fa-info-circle"></i> ${coordenadasCount} ubicaciones registradas</strong></p>` 
+                            : ''}
+                        <p style="margin: 5px 0;"><strong>Fecha:</strong> ${reporte.fecha}</p>
+                        <p style="margin: 5px 0;"><strong>Clave:</strong> ${reporte.clave}</p>
+                        <p style="margin: 5px 0;"><strong>Operador:</strong> ${reporte.operador}</p>
+                        <p style="margin: 5px 0;"><strong>Ruta:</strong> ${reporte.ruta}</p>
+                        <button onclick='abrirDetalleDesdePopup(${JSON.stringify(reporte).replace(/'/g, "&#39;")})' 
+                                style="margin-top: 10px; width: 100%; padding: 8px; background: #0a4ba1ff; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;">
+                            <i class="fas fa-eye"></i> Ver Detalle Completo
+                        </button>
+                    </div>
+                `;
+                
+                marker.bindPopup(infoContent);
+                marker.reporteFolio = reporte.folio;
+                marker.reporteData = reporte;
+                
+                marker.on('click', function() {
+                });
+                
+                if (clusteringEnabled) {
+                    markerClusterGroup.addLayer(marker);
+                } else {
+                    marker.addTo(map);
+                }
+                
+                markers.push(marker);
+                totalMarcadores++;
+            });
+            
+            document.getElementById('marcadoresVisibles').textContent = totalMarcadores;
+            document.getElementById('totalMarcadores').textContent = totalMarcadores;
+        }
+        
+        function abrirDetalleDesdePopup(reporte) {
+            abrirDetalleModal(reporte);
+            map.closePopup();
+        }
+        
+        function centrarEnReporte(reporte) {
+            if (!reporte.coordenadas || reporte.coordenadas.length === 0) {
+                alert('Este reporte no tiene coordenadas registradas');
+                return;
+            }
+            
+            var coord = reporte.coordenadas[0];
+            map.setView([coord.lat, coord.lng], 17);
+            
+            if (clusteringEnabled) {
+                markerClusterGroup.eachLayer(function(marker) {
+                    if (marker.reporteFolio === reporte.folio) {
+                        markerClusterGroup.zoomToShowLayer(marker, function() {
+                            marker.openPopup();
+                        });
+                    }
+                });
+            } else {
+                markers.forEach(function(marker) {
+                    if (marker.reporteFolio === reporte.folio) {
+                        marker.openPopup();
+                    }
+                });
+            }
+        }
+        
+        function aplicarFiltros() {
+            var folio = document.getElementById('filtroFolio').value.trim().toUpperCase();
+            var clave = document.getElementById('filtroClave').value;
+            var ruta = document.getElementById('filtroRuta').value;
+            var fechaInicio = document.getElementById('filtroFechaInicio').value;
+            var fechaFin = document.getElementById('filtroFechaFin').value;
+            
+            var fechaInicioObj = fechaInicio ? new Date(fechaInicio) : null;
+            var fechaFinObj = fechaFin ? new Date(fechaFin) : null;
+            
+            if (fechaFinObj) {
+                fechaFinObj.setHours(23, 59, 59, 999);
+            }
+            
+            reportesFiltrados = reportesData.filter(function(reporte) {
+                var cumpleFolio = !folio || reporte.folio.toUpperCase().includes(folio);
+                var cumpleClave = !clave || reporte.clave === clave;
+                var cumpleRuta = !ruta || reporte.ruta === ruta;
+                
+                var cumpleFecha = true;
+                if (fechaInicioObj || fechaFinObj) {
+                    var fechaReporte = parsearFecha(reporte.fecha);
+                    
+                    if (fechaReporte) {
+                        if (fechaInicioObj && fechaReporte < fechaInicioObj) {
+                            cumpleFecha = false;
+                        }
+                        if (fechaFinObj && fechaReporte > fechaFinObj) {
+                            cumpleFecha = false;
+                        }
+                    } else {
+                        cumpleFecha = false;
+                    }
+                }
+                
+                return cumpleFolio && cumpleClave && cumpleRuta && cumpleFecha;
+            });
+            
+            mostrarReportesEnMapa(reportesFiltrados);
+            
+            document.getElementById('mostrandoReportes').textContent = reportesFiltrados.length;
+            document.getElementById('reportesFiltrados').textContent = reportesFiltrados.length;
+        }
+        
+        function limpiarFiltros() {
+            document.getElementById('filtroFolio').value = '';
+            document.getElementById('filtroClave').value = '';
+            document.getElementById('filtroRuta').value = '';
+            document.getElementById('filtroFechaInicio').value = '';
+            document.getElementById('filtroFechaFin').value = '';
+            
+            mostrarTodos();
+        }
+        
+        function mostrarTodos() {
+            reportesFiltrados = reportesData;
+            
+            limpiarMarcadores();
+            
+            if (reportesFiltrados.length === 0) {
+                document.getElementById('marcadoresVisibles').textContent = '0';
+                document.getElementById('mostrandoReportes').textContent = '0';
+                document.getElementById('reportesFiltrados').textContent = '0';
+                return;
+            }
+            
+            var bounds = L.latLngBounds();
+            var totalMarcadores = 0;
+            
+            reportesFiltrados.forEach(function(reporte) {
+                if (!reporte.coordenadas || reporte.coordenadas.length === 0) {
+                    return;
+                }
+                
+                var coord = reporte.coordenadas[0];
+                var coordenadasCount = reporte.coordenadas.length;
+                
+                var customIcon = L.divIcon({
+                    html: '<div class="custom-marker">' + coord.id + '</div>',
+                    className: '',
+                    iconSize: [35, 35],
+                    iconAnchor: [17, 17]
+                });
+                
+                var marker = L.marker([coord.lat, coord.lng], {
+                    icon: customIcon
+                });
+                
+                var infoContent = `
+                    <div style="padding: 10px; min-width: 200px;">
+                        <h4 style="margin: 0 0 10px 0; color: #0a4ba1ff;">
+                            <i class="fas fa-file-alt"></i> Folio: ${reporte.folio}
+                        </h4>
+                        <p style="margin: 5px 0;"><strong>Marcador:</strong> #${coord.id}</p>
+                        ${coordenadasCount > 1 ? 
+                            `<p style="margin: 5px 0; color: #28a745;"><strong><i class="fas fa-info-circle"></i> ${coordenadasCount} ubicaciones registradas</strong></p>` 
+                            : ''}
+                        <p style="margin: 5px 0;"><strong>Fecha:</strong> ${reporte.fecha}</p>
+                        <p style="margin: 5px 0;"><strong>Clave:</strong> ${reporte.clave}</p>
+                        <p style="margin: 5px 0;"><strong>Operador:</strong> ${reporte.operador}</p>
+                        <p style="margin: 5px 0;"><strong>Ruta:</strong> ${reporte.ruta}</p>
+                        <button onclick='abrirDetalleDesdePopup(${JSON.stringify(reporte).replace(/'/g, "&#39;")})' 
+                                style="margin-top: 10px; width: 100%; padding: 8px; background: #0a4ba1ff; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;">
+                            <i class="fas fa-eye"></i> Ver Detalle Completo
+                        </button>
+                    </div>
+                `;
+                
+                marker.bindPopup(infoContent);
+                marker.reporteFolio = reporte.folio;
+                marker.reporteData = reporte;
+                
+                if (clusteringEnabled) {
+                    markerClusterGroup.addLayer(marker);
+                } else {
+                    marker.addTo(map);
+                }
+                
+                markers.push(marker);
+                bounds.extend([coord.lat, coord.lng]);
+                totalMarcadores++;
+            });
+            
+            if (totalMarcadores > 0) {
+                if (totalMarcadores === 1) {
+                    map.setView(bounds.getCenter(), 16);
+                } else {
+                    map.fitBounds(bounds, { padding: [50, 50] });
+                }
+            }
+            
+            document.getElementById('marcadoresVisibles').textContent = totalMarcadores;
+            document.getElementById('totalMarcadores').textContent = totalMarcadores;
+            document.getElementById('mostrandoReportes').textContent = reportesFiltrados.length;
+            document.getElementById('reportesFiltrados').textContent = reportesFiltrados.length;
+        }
+        
+        document.getElementById('filtroFolio').addEventListener('input', aplicarFiltros);
+        document.getElementById('filtroClave').addEventListener('change', aplicarFiltros);
+        document.getElementById('filtroRuta').addEventListener('change', aplicarFiltros);
+        document.getElementById('filtroFechaInicio').addEventListener('change', aplicarFiltros);
+        document.getElementById('filtroFechaFin').addEventListener('change', aplicarFiltros);
+        
+        window.onload = function() {
+            initMap();
+        };
+    </script>
+</body>
+</html>

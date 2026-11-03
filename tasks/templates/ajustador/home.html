@@ -1,0 +1,214 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inicio - Ajustador</title>
+    <link rel="icon" href="https://media.cylex.mx/companies/1167/0462/logo/logo8853855.jpg" type="image/x-icon">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+
+    <link rel="stylesheet" href="{% static 'tasks/css/plantilla.css'%}">
+    <link rel="stylesheet" href="{% static 'tasks/css/home.css' %}">
+</head>
+<body>
+    <header class="header">
+        <div class="header-container">
+            <div class="logo-container">
+                <img src="https://media.cylex.mx/companies/1167/0462/logo/logo8853855.jpg" alt="Logo de la empresa">
+                <div class="company-name">Autotransportes Banderilla</div>
+            </div>
+            
+            <div class="menu-toggle" id="menuToggle">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+            
+            <nav class="nav-menu" id="navMenu">
+                
+                <div class="menu-header">
+                    <div class="menu-user-info">
+                        <div class="menu-user-avatar">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <div class="menu-user-details">
+                            <h3>{{ user.username }}</h3>
+                            <p>En línea</p>
+                        </div>
+                    </div>
+                </div>
+
+                <ul class="nav-list">
+                    <li class="nav-item active">
+                        <a href="{% url 'home' %}">
+                            <i class="fas fa-home"></i>
+                            <span>Inicio</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{% url 'crear_reporte' %}">
+                            <i class="fas fa-plus-circle"></i>
+                            <span>Crear Reporte</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{% url 'editarReporte'%}">
+                            <i class="fas fa-edit"></i>
+                            <span>Editar Reporte</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{% url 'mapa'%}">
+                            <i class="fas fa-map"></i>
+                            <span>Mapa</span>
+                        </a>
+                    </li>
+                    <li class="nav-item has-dropdown">
+                        <a href="#">
+                            <i class="fas fa-search"></i>
+                            <span>Consulta de Reportes</span>
+                        </a>
+                        <ul class="submenu">
+                            <!--
+                            <li class="submenu-item">
+                                <a href="{% url 'ver_reportes_main' %}">
+                                    <i class="fas fa-list"></i>
+                                    Ver Reportes
+                                </a>
+                            </li>
+                            -->
+                            <li class="submenu-item">
+                                <a href="{% url 'ver_reportes_main' %}">
+                                    <i class="fas fa-list"></i>
+                                    Ver Reportes
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                    
+                    <div class="menu-divider"></div>
+                    
+                    <li class="nav-item">
+                        <a href="{% url 'reporte_estadisticas_main' %}">
+                            <i class="fas fa-chart-bar"></i>
+                            <span>Estadísticas</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{% url 'top_listss' %}">
+                            <i class="fas fa-list-ol"></i>
+                            <span>Tabla de Posiciones</span>
+                        </a>
+                    </li>
+                    <!--
+                    <li class="nav-item has-dropdown">
+                        <a href="#">
+                            <i class="fas fa-th-list"></i>
+                            <span>Listas</span>
+                        </a>
+                        <ul class="submenu">
+                            <li class="submenu-item">
+                                <a href="{% url 'mostrar_listas' %}">
+                                    <i class="fas fa-users"></i>
+                                    Administradores/Operadores
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#">
+                            <i class="fas fa-map"></i>
+                            <span>Mapa</span>
+                        </a>
+                    </li>
+                    
+                    <li class="nav-item">
+                        <a href="{% url 'vista_prueba_ajustador'%}">
+                            <i class="fas fa-list"></i>
+                            <span>Vista Prueba</span>
+                        </a>
+                    </li>-->
+                </ul>
+
+                <div class="menu-footer">
+                    <button class="logout-btn" onclick="window.location.href='{% url 'exit_login' %}'">
+                        <i class="fas fa-sign-out-alt"></i>
+                        Cerrar Sesión
+                    </button>
+                </div>
+
+            </nav>
+        </div>
+    </header>
+
+    <div class="menu-overlay" id="menuOverlay"></div>
+
+    <main class="main-content">
+        <header class="dashboard-header">
+            <div class="page-title">
+
+            </div>
+            
+            <div class="user-profile">
+                <span>{{ user.username }}</span>
+                <div class="user-avatar">
+                    <script src="https://cdn.lordicon.com/lordicon.js"></script>
+                    <lord-icon
+                        src="https://cdn.lordicon.com/spzqjmbt.json"
+                        trigger="hover"
+                        colors="primary:#015CF5,secondary:#242424"
+                        style="width:50px;height:50px">
+                    </lord-icon>
+                </div>
+            </div>
+        </header>
+        
+        <section class="welcome-cards">
+            <article class="welcome-card feature">
+                <div class="feature-icon">
+                    <i class="fas fa-file-alt"></i>
+                </div>
+                <div class="feature-content">
+                    <h3>Bienvenido!</h3>
+                    <p>Esta es la vista principal del ajustador. Navegue por el sistema usando el menú desplegable.</p>
+                </div>
+            </article>
+            
+        </section>
+        
+        <section class="quick-actions">
+            <h2 class="section-title">Acceso Directo</h2>
+            <div class="action-buttons">
+                <button class="action-btn" onclick="window.location.href='{% url 'crear_reporte' %}'">
+                    <i class="fas fa-plus"></i>
+                    Nuevo Reporte
+                </button>
+                <button class="action-btn" onclick="window.location.href='{% url 'editarReporte'%}'">
+                    <i class="fas fa-edit"></i>
+                    Editar Reporte
+                </button>
+                <button class="action-btn" onclick="window.location.href='{% url 'mapa' %}'">
+                    <i class="fas fa-map"></i>
+                    Mapa
+                </button>
+                <button class="action-btn" onclick="window.location.href='{% url 'ver_reportes_main' %}'">
+                    <i class="fas fa-list"></i>
+                    Ver Reportes
+                </button>
+                <button class="action-btn" onclick="window.location.href='{% url 'reporte_estadisticas_main' %}'">
+                    <i class="fas fa-chart-bar"></i>
+                    Estadísticas
+                </button>
+                <button class="action-btn" onclick="window.location.href='{% url 'top_listss' %}'">
+                    <i class="fas fa-arrow-up"></i>
+                    Tabla de Posiciones
+                </button>
+            </div>
+        </section> 
+        
+    </main>
+    <script src="{% static 'tasks/js/menu.js' %}"></script>
+</body>
+</html>

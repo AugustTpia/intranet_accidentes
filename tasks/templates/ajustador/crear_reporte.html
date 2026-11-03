@@ -1,0 +1,567 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crear Reporte</title>
+    <link rel="icon" href="https://media.cylex.mx/companies/1167/0462/logo/logo8853855.jpg" type="image/x-icon">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" 
+          integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" 
+          crossorigin=""/>
+
+    <link rel="stylesheet" href="{% static 'tasks/css/plantilla.css' %}">
+    <link rel="stylesheet" href="{% static 'tasks/css/crear_reporte.css' %}">
+    <link rel="stylesheet" href="{% static 'tasks/css/mapa_modal.css' %}">
+
+</head>
+<body>
+    
+    <header class="header">
+        <div class="header-container">
+            <div class="logo-container">
+                <img src="https://media.cylex.mx/companies/1167/0462/logo/logo8853855.jpg" alt="Logo de la empresa">
+                <div class="company-name">Autotransportes Banderilla</div>
+            </div>
+            
+            <div class="menu-toggle" id="menuToggle">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+            
+            <nav class="nav-menu" id="navMenu">
+                
+                <div class="menu-header">
+                    <div class="menu-user-info">
+                        <div class="menu-user-avatar">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <div class="menu-user-details">
+                            <h3>{{ user.username }}</h3>
+                            <p>En línea</p>
+                        </div>
+                    </div>
+                </div>
+
+                <ul class="nav-list">
+                    <li class="nav-item">
+                        <a href="{% url 'home' %}">
+                            <i class="fas fa-home"></i>
+                            <span>Inicio</span>
+                        </a>
+                    </li>
+                    <li class="nav-item active">
+                        <a href="{% url 'crear_reporte' %}">
+                            <i class="fas fa-plus-circle"></i>
+                            <span>Crear Reporte</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{% url 'editarReporte'%}">
+                            <i class="fas fa-edit"></i>
+                            <span>Editar Reporte</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{% url 'mapa'%}">
+                            <i class="fas fa-map"></i>
+                            <span>Mapa</span>
+                        </a>
+                    </li>
+                    <li class="nav-item has-dropdown">
+                        <a href="#">
+                            <i class="fas fa-search"></i>
+                            <span>Consulta de Reportes</span>
+                        </a>
+                        <ul class="submenu">
+                            <li class="submenu-item">
+                                <a href="{% url 'ver_reportes_main' %}">
+                                    <i class="fas fa-list"></i>
+                                    Ver Reportes
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                    
+                    <div class="menu-divider"></div>
+                    
+                    <li class="nav-item">
+                        <a href="{% url 'reporte_estadisticas_main' %}">
+                            <i class="fas fa-chart-bar"></i>
+                            <span>Estadísticas</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{% url 'top_listss' %}">
+                            <i class="fas fa-list-ol"></i>
+                            <span>Tabla de Posiciones</span>
+                        </a>
+                    </li>
+                    <!--
+                    <li class="nav-item has-dropdown">
+                        <a href="#">
+                            <i class="fas fa-th-list"></i>
+                            <span>Listas</span>
+                        </a>
+                        <ul class="submenu">
+                            <li class="submenu-item">
+                                <a href="{% url 'mostrar_listas' %}">
+                                    <i class="fas fa-users"></i>
+                                    Administradores/Operadores
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#">
+                            <i class="fas fa-map"></i>
+                            <span>Mapa</span>
+                        </a>
+                    </li>
+                    -->
+                </ul>
+
+                <div class="menu-footer">
+                    <button class="logout-btn" onclick="window.location.href='{% url 'exit_login' %}'">
+                        <i class="fas fa-sign-out-alt"></i>
+                        Cerrar Sesión
+                    </button>
+                </div>
+
+            </nav>
+        </div>
+    </header>
+
+    <div class="menu-overlay" id="menuOverlay"></div>
+
+    <main class="main-content">
+        <div class="form-container">
+            <div class="form-header">
+                <h1><i class="fas fa-file-contract"></i> TRANSCRIPCIÓN DE REPORTE</h1>
+            </div>
+
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="fecha">FECHA</label>
+                        <input type="date" id="fecha" name="fecha" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="folio">FOLIO</label>
+                        <input type="text" id="folio" name="folio" placeholder="Ingresa solo números" style="text-transform: uppercase;" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="clave">CLAVE (solo número)</label>
+                        <input type="text" id="clave" name="clave" placeholder="Ejemplo: 910" style="text-transform: uppercase;" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="administrador">ADMINISTRADOR</label>
+                        <input type="text" id="administrador" name="administrador" placeholder="Nombre administrador" style="text-transform: uppercase;" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>RUTA</label>
+                        <div class="radio-group">
+                            <div class="radio-option">
+                                <input type="radio" id="urbano" name="ruta" value="URBANO" checked>
+                                <label for="urbano">URBANO</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="interbus" name="ruta" value="INTERBUS">
+                                <label for="interbus">INTERBUS</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="directo" name="ruta" value="DIRECTO">
+                                <label for="directo">DIRECTO</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="foraneo" name="ruta" value="FORANEO">
+                                <label for="foraneo">FORANEO</label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="operador">OPERADOR</label>
+                        <input type="text" id="operador" name="operador" placeholder="Nombre operador" style="text-transform: uppercase;">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="damage_vehiculo">DAÑO VEHÍCULO</label>
+                        <input type="text" id="damage_vehiculo" name="damage_vehiculo" placeholder="Descripción del daño" style="text-transform: uppercase;">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="damage_bus">DAÑO VEHÍCULO ATB</label>
+                        <input type="text" id="damage_bus" name="damage_bus" placeholder="Descripción del daño" style="text-transform: uppercase;">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="damage_others">DAÑO TERCEROS (1)</label>
+                        <input type="text" id="damage_others" name="damage_others" placeholder="Daño colateral" style="text-transform: uppercase;">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="damage_others2">DAÑO TERCEROS (2)</label>
+                        <input type="text" id="damage_others2" name="damage_others2" placeholder="Daño colateral" style="text-transform: uppercase;">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="damage_others3">DAÑO TERCEROS (3)</label>
+                        <input type="text" id="damage_others3" name="damage_others3" placeholder="Daño colateral" style="text-transform: uppercase;">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="ubicacion">UBICACIÓN DEL PERCANCE</label>
+                        <input type="text" id="ubicacion" name="ubicacion" style="text-transform: uppercase;" required>
+                    </div>
+
+                    <div class="form-group d-flex align-items-center">
+                        <label for="costo_finiquito" class="me-3">MONTO</label>
+                        <div style="flex: 1;">
+                            <input type="text" step="0.01" id="costo_finiquito" name="costo_finiquito" placeholder="$ 0.00" required>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="observaciones">OBSERVACIONES</label>
+                    <textarea id="observaciones" name="observaciones" style="text-transform: uppercase;"></textarea>
+                </div>
+                
+                
+                
+                <div class="form-group">
+                    <label>RESPONSABILIDAD</label>
+                    <div class="radio-group">
+                        <div class="radio-option">
+                            <input type="radio" id="responsabilidad_si" name="responsabilidad" value="Si" checked>
+                            <label for="responsabilidad_si">Con responsabilidad</label>
+                        </div>
+                        <div class="radio-option">
+                            <input type="radio" id="responsabilidad_no" name="responsabilidad" value="No">
+                            <label for="responsabilidad_no">Sin responsabilidad</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>AGREGAR UBICACIÓN EN MAPA</label>
+                    <button type="button" class="btn btn-primary" onclick="openMapModal()">
+                        Abrir Mapa
+                    </button>
+                    <input type="text" readonly id="coordinates" name="coordinates" placeholder="Coordenadas seleccionadas aparecerán aquí" style="margin-top: 10px; text-transform: uppercase;">
+
+                </div>
+
+                <div id="mapModal" class="modal">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title">Seleccionar Ubicación en el Mapa</h5>
+                                <button type="button" class="close" onclick="closeMapModal()">
+                                    <span>&times;</span>
+                                </button>
+                            </div>
+                            <div class="modal-body">
+                                <div id="map-canvas"></div>
+                                <div class="marker-panel">
+                                    <div class="marker-panel-header">
+                                        <strong>Marcadores (<span id="markerCount">0</span>)</strong>
+                                    </div>
+                                    <div class="marker-list-container" id="markerList">
+                                        <p style="color: #666; text-align: center;">Haz clic en el mapa para agregar marcadores</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <div>
+                                    <button type="button" class="btn btn-danger" onclick="clearAllMarkers()">
+                                        Limpiar Todo
+                                    </button>
+                                </div>
+                                <div>
+                                    <button type="button" class="btn btn-secondary" onclick="closeMapModal()">
+                                        Cerrar
+                                    </button>
+                                    <button type="button" class="btn btn-success" onclick="saveCoordinates()">
+                                        Guardar
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" 
+                        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" 
+                        crossorigin=""></script>
+                
+                <script>
+                    var map;
+                    var markers = [];
+                    var markerIdCounter = 1;
+
+                    function openMapModal() {
+                        document.getElementById('mapModal').style.display = 'block';
+                        
+                        if (!map) {
+                            setTimeout(function() {
+                                initializeMap();
+                            }, 100);
+                        }
+                    }
+
+                    function closeMapModal() {
+                        document.getElementById('mapModal').style.display = 'none';
+                    }
+
+                    function initializeMap() {
+                        map = L.map('map-canvas').setView([19.5333673, -96.9186144], 14);
+                        
+                       L.tileLayer('https://{s}.tile-cyclosm.openstreetmap.fr/cyclosm/{z}/{x}/{y}.png', {
+                            attribution: '<a href="https://github.com/cyclosm/cyclosm-cartocss-style/releases" title="CyclOSM - Open Bicycle render">CyclOSM</a> | Map data: &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+                            maxZoom: 20
+                        }).addTo(map);
+                        
+                        map.on('click', function(e) {
+                            addMarker(e.latlng.lat, e.latlng.lng);
+                        });
+                    }
+
+                    function addMarker(lat, lng) {
+                        var markerId = markerIdCounter++;
+                        
+                        var customIcon = L.divIcon({
+                            html: '<div style="background-color: #3e4d9a; color: white; border-radius: 50%; width: 35px; height: 35px; display: flex; align-items: center; justify-content: center; font-weight: bold; border: 3px solid white; box-shadow: 0 2px 8px rgba(0,0,0,0.3);">' + markerId + '</div>',
+                            className: '',
+                            iconSize: [35, 35],
+                            iconAnchor: [17, 17]
+                        });
+                        
+                        var marker = L.marker([lat, lng], {
+                            icon: customIcon,
+                            draggable: true
+                        }).addTo(map);
+                        
+                        marker.bindPopup(
+                            '<div style="padding: 5px;"><strong>Marcador #' + markerId + '</strong><br>' +
+                            'Lat: ' + lat.toFixed(6) + '<br>' +
+                            'Lng: ' + lng.toFixed(6) + '</div>'
+                        );
+                        
+                        marker.on('dragend', function(e) {
+                            var position = e.target.getLatLng();
+                            updateMarkerCoordinates(markerId, position.lat, position.lng);
+                        });
+                        
+                        markers.push({
+                            id: markerId,
+                            marker: marker,
+                            lat: lat,
+                            lng: lng
+                        });
+                        
+                        updateMarkerList();
+                        updateMarkerCount();
+                    }
+
+                    function updateMarkerCoordinates(markerId, newLat, newLng) {
+                        var markerData = markers.find(m => m.id === markerId);
+                        if (markerData) {
+                            markerData.lat = newLat;
+                            markerData.lng = newLng;
+                            markerData.marker.setPopupContent(
+                                '<div style="padding: 5px;"><strong>Marcador #' + markerId + '</strong><br>' +
+                                'Lat: ' + newLat.toFixed(6) + '<br>' +
+                                'Lng: ' + newLng.toFixed(6) + '</div>'
+                            );
+                            updateMarkerList();
+                        }
+                    }
+
+                    function updateMarkerList() {
+                        var listContainer = document.getElementById('markerList');
+                        
+                        if (markers.length === 0) {
+                            listContainer.innerHTML = '<p style="color: #666; text-align: center;">Haz clic en el mapa para agregar marcadores</p>';
+                            return;
+                        }
+                        
+                        var html = '';
+                        markers.forEach(function(markerData) {
+                            html += '<div class="marker-item">' +
+                                    '<div class="marker-info">' +
+                                    '<strong>Marcador #' + markerData.id + '</strong><br>' +
+                                    '<small>Lat: ' + markerData.lat.toFixed(6) + ', Lng: ' + markerData.lng.toFixed(6) + '</small>' +
+                                    '</div>' +
+                                    '<button type="button" class="marker-delete-btn" onclick="removeMarker(' + markerData.id + ')">' +
+                                    '<i class="fas fa-trash"></i>' +
+                                    '</button>' +
+                                    '</div>';
+                        });
+                        
+                        listContainer.innerHTML = html;
+                    }
+
+                    function updateMarkerCount() {
+                        document.getElementById('markerCount').textContent = markers.length;
+                    }
+
+                    function removeMarker(markerId) {
+                        var index = markers.findIndex(m => m.id === markerId);
+                        if (index !== -1) {
+                            map.removeLayer(markers[index].marker);
+                            markers.splice(index, 1);
+                            updateMarkerList();
+                            updateMarkerCount();
+                        }
+                    }
+
+                    function clearAllMarkers() {
+                        if (confirm('¿Estás seguro de que deseas eliminar todos los marcadores?')) {
+                            markers.forEach(function(markerData) {
+                                map.removeLayer(markerData.marker);
+                            });
+                            markers = [];
+                            markerIdCounter = 1;
+                            updateMarkerList();
+                            updateMarkerCount();
+                        }
+                    }
+
+                    function saveCoordinates() {
+                        if (markers.length === 0) {
+                            alert('Por favor, agrega al menos un marcador en el mapa');
+                            return;
+                        }
+                        
+                        var coordinatesData = markers.map(function(markerData) {
+                            return {
+                                id: markerData.id,
+                                lat: markerData.lat,
+                                lng: markerData.lng
+                            };
+                        });
+                        
+                        document.getElementById('coordinates').value = JSON.stringify(coordinatesData);
+                        closeMapModal();
+                        
+                        alert('Se han guardado ' + markers.length + ' marcador(es)');
+                    }
+
+                    window.onclick = function(event) {
+                        var modal = document.getElementById('mapModal');
+                        if (event.target == modal) {
+                            closeMapModal();
+                        }
+                    }
+                </script>
+                
+                <div class="form-group">
+                    <label>QUALITAS</label>
+                    <div class="radio-group">
+                        <div class="radio-option">
+                            <input type="radio" id="intervino_si" name="intervino" value="Si Intervino">
+                            <label for="intervino_si">Intervino</label>
+                        </div>
+                        <div class="radio-option">
+                            <input type="radio" id="intervino_no" name="intervino" value="No intervino" checked>
+                            <label for="intervino_no">No intervino</label>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="image-upload-section">
+                    <div class="image-upload-title">
+                        <i class="fas fa-images"></i>
+                        <h3>SUBIR IMÁGENES</h3>
+                    </div>
+                    
+                    <div class="image-preview-container">
+                        <div class="image-upload-box" id="image-box-1">
+                            <i class="fas fa-camera"></i>
+                            <span>Haz clic para agregar imagen</span>
+                            <input type="file" id="imagen1" name="imagen1" accept="image/*" onchange="previewImage(this, 1)">
+                            <img class="preview-image" id="preview-1">
+                            <button type="button" class="remove-image-btn" onclick="removeImage(1)">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                        
+                        <div class="image-upload-box" id="image-box-2">
+                            <i class="fas fa-camera"></i>
+                            <span>Haz clic para agregar imagen</span>
+                            <input type="file" id="imagen2" name="imagen2" accept="image/*" onchange="previewImage(this, 2)">
+                            <img class="preview-image" id="preview-2">
+                            <button type="button" class="remove-image-btn" onclick="removeImage(2)">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                        
+                        <div class="image-upload-box" id="image-box-3">
+                            <i class="fas fa-camera"></i>
+                            <span>Haz clic para agregar imagen</span>
+                            <input type="file" id="imagen3" name="imagen3" accept="image/*" onchange="previewImage(this, 3)">
+                            <img class="preview-image" id="preview-3">
+                            <button type="button" class="remove-image-btn" onclick="removeImage(3)">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                        
+                        <div class="image-upload-box" id="image-box-4">
+                            <i class="fas fa-camera"></i>
+                            <span>Haz clic para agregar imagen</span>
+                            <input type="file" id="imagen4" name="imagen4" accept="image/*" onchange="previewImage(this, 4)">
+                            <img class="preview-image" id="preview-4">
+                            <button type="button" class="remove-image-btn" onclick="removeImage(4)">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                        
+                        <div class="image-upload-box" id="image-box-5">
+                            <i class="fas fa-camera"></i>
+                            <span>Haz clic para agregar imagen</span>
+                            <input type="file" id="imagen5" name="imagen5" accept="image/*" onchange="previewImage(this, 5)">
+                            <img class="preview-image" id="preview-5">
+                            <button type="button" class="remove-image-btn" onclick="removeImage(5)">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                        
+                        <div class="image-upload-box" id="image-box-6">
+                            <i class="fas fa-camera"></i>
+                            <span>Haz clic para agregar imagen</span>
+                            <input type="file" id="imagen6" name="imagen6" accept="image/*" onchange="previewImage(this, 6)">
+                            <img class="preview-image" id="preview-6">
+                            <button type="button" class="remove-image-btn" onclick="removeImage(6)">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <button type="submit" class="submit-btn">
+                    <i class="fas fa-save"></i> CREAR REPORTE
+                </button>
+            </form>
+            
+            <a href="{% url 'home' %}" class="back-btn">
+                <i class="fas fa-arrow-left"></i> REGRESAR
+            </a>
+        </div>
+    </main>
+
+    <script src="{% static 'tasks/js/menu.js' %}"></script>
+    <script src="{% static 'tasks/js/format_mont.js' %}"></script>
+    
+</body>
+</html>

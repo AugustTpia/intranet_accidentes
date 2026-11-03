@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ver Reportes</title>
+    <style>
+        /* Estilos generales */
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+
+        /* Barra de búsqueda */
+        .search-bar {
+            max-width: 800px;
+            margin: 20px auto;
+            text-align: center;
+        }
+
+        .search-bar input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+
+        /* Contenedor de reportes */
+        .reportes-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Estilos para cada reporte */
+        .reporte {
+            border-bottom: 1px solid #ddd;
+            padding: 15px 0;
+        }
+
+        .reporte:last-child {
+            border-bottom: none;
+        }
+
+        .reporte h2 {
+            margin: 0;
+            color: #007bff;
+            font-size: 24px;
+        }
+
+        .reporte p {
+            margin: 10px 0;
+            color: #555;
+            line-height: 1.6;
+        }
+
+        .reporte small {
+            display: block;
+            color: #888;
+            font-size: 14px;
+        }
+
+        /* Contenedor de imágenes */
+        .imagenes-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .imagenes-container img {
+            max-width: 150px;
+            height: auto;
+            border-radius: 4px;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+
+        .imagenes-container img:hover {
+            transform: scale(1.05);
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            padding-top: 60px;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.9);
+        }
+
+        .modal-content {
+            margin: auto;
+            display: block;
+            max-width: 80%;
+            max-height: 80%;
+        }
+
+        .close {
+            position: absolute;
+            top: 20px;
+            right: 35px;
+            color: #fff;
+            font-size: 40px;
+            font-weight: bold;
+            transition: 0.3s;
+            cursor: pointer;
+        }
+
+        .close:hover {
+            color: #bbb;
+        }
+
+        /* Botón de regresar */
+        .btn-regresar {
+            display: block;
+            width: 100px;
+            margin: 20px auto;
+            padding: 10px;
+            text-align: center;
+            background-color: #007bff;
+            color: #fff;
+            text-decoration: none;
+            border-radius: 4px;
+            transition: background-color 0.3s ease;
+        }
+
+        .btn-regresar:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <h1>Reportes</h1>
+
+    <!-- Barra de búsqueda -->
+    <div class="search-bar">
+        <input type="text" id="searchInput" placeholder="Buscar reportes...">
+    </div>
+
+    <!-- Contenedor de reportes -->
+    <div class="reportes-container">
+        {% for reporte in reportes %}
+            <div class="reporte">
+                <h2>{{ reporte.fecha }} - {{ reporte.clave }}</h2>
+                <p><strong>Fecha:</strong> {{ reporte.fecha }}</p>
+                <p><strong>Folio:</strong> {{ reporte.folio }}</p>
+                <p><strong>Clave:</strong> {{ reporte.clave }}</p>
+                <p><strong>Operador:</strong> {{ reporte.operador }}</p>
+                <p><strong>Administrador:</strong> {{ reporte.administrador }}</p>
+                <p><strong>Daño Vehículo:</strong> {{ reporte.damage_vehiculo }}</p>
+                <p><strong>Daño Autobús:</strong> {{ reporte.damage_bus }}</p>
+                <p><strong>Daño Terceros 1:</strong> {{ reporte.damage_others }}</p>
+                <p><strong>Daño Terceros 2:</strong> {{ reporte.damage_others2 }}</p>
+                <p><strong>Daño Terceros 3:</strong> {{ reporte.damage_others3 }}</p>
+                <p><strong>Ubicación:</strong> {{ reporte.ubicacion }}</p>
+                <p><strong>Observaciones:</strong> {{ reporte.observaciones }}</p>
+                <p><strong>Qualitas:</strong> {{ reporte.intervino }}</p>
+                <p><strong>Responsabilidad:</strong> {{ reporte.responsabilidad }}</p>
+                <!-- Contenedor de imágenes -->
+                <div class="imagenes-container">
+                    {% if reporte.imagen1 %}
+                        <img src="{{ reporte.imagen1.url }}" alt="Imagen 1" onclick="openModal('{{ reporte.imagen1.url }}')">
+                    {% endif %}
+                    {% if reporte.imagen2 %}
+                        <img src="{{ reporte.imagen2.url }}" alt="Imagen 2" onclick="openModal('{{ reporte.imagen2.url }}')">
+                    {% endif %}
+                    {% if reporte.imagen3 %}
+                        <img src="{{ reporte.imagen3.url }}" alt="Imagen 3" onclick="openModal('{{ reporte.imagen3.url }}')">
+                    {% endif %}
+                    {% if reporte.imagen4 %}
+                        <img src="{{ reporte.imagen4.url }}" alt="Imagen 4" onclick="openModal('{{ reporte.imagen4.url }}')">
+                    {% endif %}
+                    {% if reporte.imagen5 %}
+                        <img src="{{ reporte.imagen5.url }}" alt="Imagen 5" onclick="openModal('{{ reporte.imagen5.url }}')">
+                    {% endif %}
+                    {% if reporte.imagen6 %}
+                        <img src="{{ reporte.imagen6.url }}" alt="Imagen 6" onclick="openModal('{{ reporte.imagen6.url }}')">
+                    {% endif %}
+                </div>
+                
+            </div>
+        {% endfor %}
+    </div>
+
+    <!-- Modal para ver imágenes -->
+    <div id="myModal" class="modal">
+        <span class="close" onclick="closeModal()">&times;</span>
+        <img class="modal-content" id="modalImage">
+    </div>
+
+    <!-- Botón de regresar -->
+    <a href="/" class="btn-regresar">Regresar</a>
+
+    <script>
+        // Función para abrir el modal con la imagen seleccionada
+        function openModal(imageUrl) {
+            const modal = document.getElementById("myModal");
+            const modalImg = document.getElementById("modalImage");
+            modal.style.display = "block";
+            modalImg.src = imageUrl;
+        }
+
+        // Función para cerrar el modal
+        function closeModal() {
+            document.getElementById("myModal").style.display = "none";
+        }
+
+        // Función para filtrar reportes
+        document.getElementById("searchInput").addEventListener("input", function() {
+            const searchTerm = this.value.toLowerCase();
+            const reportes = document.querySelectorAll(".reporte");
+
+            reportes.forEach(reporte => {
+                const text = reporte.textContent.toLowerCase();
+                if (text.includes(searchTerm)) {
+                    reporte.style.display = "block";
+                } else {
+                    reporte.style.display = "none";
+                }
+            });
+        });
+    </script>
+</body>
+</html>

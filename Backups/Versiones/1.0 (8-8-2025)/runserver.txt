@@ -1,0 +1,10 @@
+Server Local
+
+cd C:\Users\ATBServercam\Desktop\postg_django
+
+Virtual env
+.env\Scripts\Activate
+
+Run server 0.0.0.0:8000
+Windows:
+waitress-serve --listen=0.0.0.0:8000 form_web.wsgi:application

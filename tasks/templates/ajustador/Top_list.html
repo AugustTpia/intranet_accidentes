@@ -1,0 +1,325 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tabla de Posiciones</title>
+    <link rel="icon" href="https://media.cylex.mx/companies/1167/0462/logo/logo8853855.jpg" type="image/x-icon">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script src="https://cdn.lordicon.com/lordicon.js"></script>
+
+    <link rel="stylesheet" href="{% static 'tasks/css/plantilla.css' %}">
+    <link rel="stylesheet" href="{% static 'tasks/css/lists_admin.css' %}">
+</head>
+<body>
+    
+    <!-- Header con menú desplegable -->
+    <header class="header">
+        <div class="header-container">
+            <div class="logo-container">
+                <img src="https://media.cylex.mx/companies/1167/0462/logo/logo8853855.jpg" alt="Logo de la empresa">
+                <div class="company-name">Autotransportes Banderilla</div>
+            </div>
+            
+            <div class="menu-toggle" id="menuToggle">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+            
+            <nav class="nav-menu" id="navMenu">
+                
+                <div class="menu-header">
+                    <div class="menu-user-info">
+                        <div class="menu-user-avatar">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <div class="menu-user-details">
+                            <h3>{{ user.username }}</h3>
+                            <p>En línea</p>
+                        </div>
+                    </div>
+                </div>
+
+                <ul class="nav-list">
+                    <li class="nav-item">
+                        <a href="{% url 'home' %}">
+                            <i class="fas fa-home"></i>
+                            <span>Inicio</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{% url 'crear_reporte' %}">
+                            <i class="fas fa-plus-circle"></i>
+                            <span>Crear Reporte</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{% url 'editarReporte' %}">
+                            <i class="fas fa-edit"></i>
+                            <span>Editar Reporte</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{% url 'mapa'%}">
+                            <i class="fas fa-map"></i>
+                            <span>Mapa</span>
+                        </a>
+                    </li>
+                    <li class="nav-item has-dropdown">
+                        <a href="#">
+                            <i class="fas fa-search"></i>
+                            <span>Consulta de Reportes</span>
+                        </a>
+                        <ul class="submenu">
+                            <li class="submenu-item">
+                                <a href="{% url 'ver_reportes_main' %}">
+                                    <i class="fas fa-list"></i>
+                                    Ver Reportes
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                    
+                    <div class="menu-divider"></div>
+                    
+                    <li class="nav-item">
+                        <a href="{% url 'reporte_estadisticas_main' %}">
+                            <i class="fas fa-chart-bar"></i>
+                            <span>Estadísticas</span>
+                        </a>
+                    </li>
+                    <li class="nav-item active">
+                        <a href="{% url 'top_listss' %}">
+                            <i class="fas fa-list-ol"></i>
+                            <span>Tabla de Posiciones</span>
+                        </a>
+                    </li>
+                    <!--
+                    <li class="nav-item has-dropdown">
+                        <a href="#">
+                            <i class="fas fa-th-list"></i>
+                            <span>Listas</span>
+                        </a>
+                        <ul class="submenu">
+                            <li class="submenu-item">
+                                <a href="{% url 'mostrar_listas' %}">
+                                    <i class="fas fa-users"></i>
+                                    Administradores/Operadores
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#">
+                            <i class="fas fa-map"></i>
+                            <span>Mapa</span>
+                        </a>
+                    </li>
+                    -->
+                </ul>
+
+                <div class="menu-footer">
+                    <button class="logout-btn" onclick="window.location.href='{% url 'exit_login' %}'">
+                        <i class="fas fa-sign-out-alt"></i>
+                        Cerrar Sesión
+                    </button>
+                </div>
+
+            </nav>
+        </div>
+    </header>
+
+    <div class="menu-overlay" id="menuOverlay"></div>
+
+    <!-- Contenido principal -->
+    <main class="main-content">
+        <div class="page-header-positions">
+            <h1><i class="fas fa-level-up"></i> Tabla de Posiciones</h1>
+            <a href="javascript:history.back()" class="btn-back">
+                <i class="fas fa-arrow-left"></i> Volver atrás
+            </a>
+        </div>
+
+        <!-- Filtros -->
+        <div class="filtros-container">
+            <h1><i class="fas fa-filter"></i> Filtros de Fecha</h1>
+            <form method="get">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="fecha_inicio"><i class="fas fa-calendar-alt"></i> Fecha Inicio:</label>
+                        <input type="date" id="fecha_inicio" name="fecha_inicio" value="{{ filtros.fecha_inicio }}">
+                    </div>
+                    <div class="form-group">
+                        <label for="fecha_fin"><i class="fas fa-calendar-alt"></i> Fecha Fin:</label>
+                        <input type="date" id="fecha_fin" name="fecha_fin" value="{{ filtros.fecha_fin }}">
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="responsabilidad"><i class="fas fa-balance-scale"></i> Responsabilidad:</label>
+                        <select id="responsabilidad" name="responsabilidad">
+                            <option value="">Todo</option>
+                            {% for responsabilidad in responsabilidades_unicas %}
+                                <option value="{{ responsabilidad }}" {% if filtros.responsabilidad == responsabilidad %}selected{% endif %}>{{ responsabilidad }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <div class="btn-container">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-check"></i> Aplicar Filtros
+                    </button>
+                    <a href="?" class="btn btn-secondary">
+                        <i class="fas fa-eraser"></i> Limpiar Filtros
+                    </a>
+                </div>
+            </form>
+        </div>
+
+        <!-- Tabla de posiciones -->
+        <div class="card">
+            <h2><i class="fas fa-table"></i> Ranking de Operadores</h2>
+            <div>
+                <b><i class="fas fa-calendar-check"></i> Fecha Inicio:</b> {{ filtros.fecha_inicio|default:"No especificada" }}
+                <b><i class="fas fa-calendar-times"></i> Fecha Final:</b> {{ filtros.fecha_fin|default:"No especificada" }}
+            </div>
+            <table style="text-transform: uppercase;">
+                <thead>
+                    <tr>
+                        <th><i class="fas fa-arrow-up"></i> Posición</th>
+                        <th><i class="fas fa-user"></i> Operador</th>
+                        <th><i class="fas fa-hashtag"></i> Folios</th>
+                        <th><i class="fas fa-file-alt"></i> Reportes</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for stat in accidentes_generales %}
+                        <tr>
+                            <td>{{ stat.row_number }}</td>
+                            <td>{{ stat.operador }}</td>
+                            <td>{{ stat.numero_folios }}</td>
+                            <td>
+                                <div class="icon-container icon-trigger" 
+                                    data-operador="{{ stat.operador }}" 
+                                    data-folios="{{ stat.numero_folios }}"
+                                    data-posicion="{{ stat.row_number }}">
+                                    <lord-icon
+                                        src="https://cdn.lordicon.com/piurhpdv.json"
+                                        trigger="hover"
+                                        colors="primary:#121331,secondary:#08a88a"
+                                        style="width:35px;height:30px">
+                                    </lord-icon>   
+                                </div>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </main>
+    
+    <!-- Modal -->
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal-container">
+            <button class="modal-close" id="closeModal">&times;</button>
+            <div class="modal-header">
+                <h2 class="modal-title"><i class="fas fa-info-circle"></i> Información del Operador</h2>
+            </div>
+            <div class="modal-header">
+                <h3 class="modal-title" style="font-size: 1.1rem; color: #555;">
+                    <i class="fas fa-calendar-alt"></i> Período: {{ filtros.fecha_inicio|default:"N/A" }} / {{ filtros.fecha_fin|default:"N/A" }}
+                </h3>
+            </div>
+            <div class="modal-content">
+                <p><strong><i class="fas fa-user"></i> Operador:</strong> <span id="modalOperador"></span></p>
+                <p><strong><i class="fas fa-hashtag"></i> Número de Folios:</strong> <span id="modalFolios"></span></p>
+                <p><strong><i class="fas fa-arrow-up"></i> Posición:</strong> <span id="modalPosicion"></span></p>
+                
+                <div style="margin-top: 20px;">
+                    <h3 style="color: var(--primary-color); margin-bottom: 15px;">
+                        <i class="fas fa-list"></i> Detalle de Reportes
+                    </h3>
+                    <table style="text-transform: uppercase;">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Fecha</th>
+                                <th>Folio</th>
+                            </tr>
+                        </thead>
+                        <tbody id="modalReportesBody">
+
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="{% static 'tasks/js/menu.js' %}"></script>
+    <script src="{% static 'tasks/js/modal_lists.js' %}"></script>
+    <script>
+        // Pasar los datos de Django a JavaScript (convertir a JSON)
+        const detallesOperadores = {{ detalles_operadores|safe }};
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            const iconTriggers = document.querySelectorAll('.icon-trigger');
+            const modalOverlay = document.getElementById('modalOverlay');
+            const closeModal = document.getElementById('closeModal');
+            
+            // Agregar evento click a cada icono de operador
+            iconTriggers.forEach(trigger => {
+                trigger.addEventListener('click', function() {
+                    const operador = this.dataset.operador;
+                    const folios = this.dataset.folios;
+                    const posicion = this.dataset.posicion;
+                    
+                    // Actualizar información básica del modal
+                    document.getElementById('modalOperador').textContent = operador;
+                    document.getElementById('modalFolios').textContent = folios;
+                    document.getElementById('modalPosicion').textContent = posicion;
+                    
+                    // Obtener los reportes del operador desde el objeto JavaScript
+                    const detalles = detallesOperadores[operador];
+                    const tbody = document.getElementById('modalReportesBody');
+                    tbody.innerHTML = '';
+                    
+                    if (detalles && detalles.reportes && detalles.reportes.length > 0) {
+                        detalles.reportes.forEach((reporte, index) => {
+                            const row = document.createElement('tr');
+                            row.innerHTML = `
+                                <td>${index + 1}</td>
+                                <td>${reporte.fecha}</td>
+                                <td>${reporte.folio}</td>
+                            `;
+                            tbody.appendChild(row);
+                        });
+                    } else {
+                        tbody.innerHTML = '<tr><td colspan="3" style="text-align: center;">No hay reportes disponibles</td></tr>';
+                    }
+                    
+                    // Mostrar modal
+                    modalOverlay.classList.add('active');
+                });
+            });
+            
+            // Cerrar modal con el botón X
+            closeModal.addEventListener('click', function() {
+                modalOverlay.classList.remove('active');
+            });
+            
+            // Cerrar modal haciendo click fuera del contenido
+            modalOverlay.addEventListener('click', function(e) {
+                if (e.target === modalOverlay) {
+                    modalOverlay.classList.remove('active');
+                }
+            });
+        });
+    </script>
+</body>
+</html>

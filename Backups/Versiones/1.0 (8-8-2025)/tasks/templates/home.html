@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ajustador S.C.L.</title>
+    <style>
+        /* Estilos generales */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f8f9fa;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            height: 100%;
+            width: 250px;
+            position: fixed;
+            top: 0;
+            left: 0;
+            background-color: #343a40; /* Fondo oscuro */
+            padding-top: 20px;
+            box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .sidebar a {
+            padding: 15px 20px;
+            text-decoration: none;
+            font-size: 18px;
+            color: #fff; /* Texto blanco */
+            display: block;
+            transition: background-color 0.3s ease;
+        }
+
+        .sidebar a:hover {
+            background-color: #495057; /* Color de fondo al pasar el mouse */
+        }
+
+        /* Contenido principal */
+        .content {
+            margin-left: 250px;
+            padding: 40px;
+            background-color: #fff;
+            min-height: 100vh;
+        }
+
+        .content h1 {
+            color: #343a40; /* Color oscuro para el título */
+            margin-bottom: 20px;
+            font-size: 36px;
+        }
+
+        .content p {
+            color: #555;
+            font-size: 18px;
+            line-height: 1.6;
+        }
+
+        /* Estilos responsivos */
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 100%;
+                height: auto;
+                position: relative;
+            }
+
+            .sidebar a {
+                text-align: center;
+                padding: 10px;
+            }
+
+            .content {
+                margin-left: 0;
+                padding: 20px;
+            }
+
+            .content h1 {
+                font-size: 28px;
+            }
+
+            .content p {
+                font-size: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <a href="{% url 'crear_reporte' %}">Crear Reporte</a>
+        <a href="{% url 'ver_reportes' %}">Ver Reportes</a>
+        <a href="{% url 'exit_login' %}">Salir</a>
+    </div>
+
+    <!-- Contenido Principal -->
+    <div class="content">
+        <h1>Ajustador S.C.L. Autotransportes Banderilla</h1>
+        <p>Bienvenido al sistema de reportes de incidencias. Desde aquí puede crear nuevos reportes o ver los reportes existentes.</p>
+    </div>
+</body>
+</html>

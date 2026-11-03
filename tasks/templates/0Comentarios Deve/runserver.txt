@@ -1,0 +1,26 @@
+Server Local
+
+cd C:\Users\atbte\OneDrive\Escritorio\vsc\devel_ajustador_Django
+
+Virtual env
+.env\Scripts\Activate
+
+Run server 0.0.0.0:8000
+Windows:
+waitress-serve --listen=0.0.0.0:8000 form_web.wsgi:application
+
+
+MarcoPavia
+MarcoPavia1
+
+
+
+Init Laptop:
+
+cd C:\Users\marco\Desktop\VSC\devel_ajustador_Django
+.env\Scripts\Activate
+python manage.py runserver
+
+
+
+"Recuadro de Cantidad en Formulario"

@@ -1,0 +1,720 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Editar Reporte</title>
+    <link rel="icon" href="https://media.cylex.mx/companies/1167/0462/logo/logo8853855.jpg" type="image/x-icon">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" 
+          integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" 
+          crossorigin=""/>
+
+    <link rel="stylesheet" href="{% static 'tasks/css/plantilla.css' %}">
+    <link rel="stylesheet" href="{% static 'tasks/css/crear_reporte.css' %}">
+    <link rel="stylesheet" href="{% static 'tasks/css/mapa_modal.css' %}">
+
+    <style>
+        /* Estilos adicionales para mensajes de alerta */
+        .alert {
+            padding: 15px 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .alert-success {
+            background-color: #d4edda;
+            color: #155724;
+            border-left: 4px solid #28a745;
+        }
+        
+        .alert-error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border-left: 4px solid #dc3545;
+        }
+
+        .form-header h1 {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .form-info {
+            margin-top: 10px;
+            font-size: 14px;
+            opacity: 0.9;
+        }
+    </style>
+</head>
+<body>
+    
+    <header class="header">
+        <div class="header-container">
+            <div class="logo-container">
+                <img src="https://media.cylex.mx/companies/1167/0462/logo/logo8853855.jpg" alt="Logo de la empresa">
+                <div class="company-name">Autotransportes Banderilla</div>
+            </div>
+            
+            <div class="menu-toggle" id="menuToggle">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+            
+            <nav class="nav-menu" id="navMenu">
+                
+                <div class="menu-header">
+                    <div class="menu-user-info">
+                        <div class="menu-user-avatar">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <div class="menu-user-details">
+                            <h3>{{ user.username }}</h3>
+                            <p>En línea</p>
+                        </div>
+                    </div>
+                </div>
+
+                <ul class="nav-list">
+                    <li class="nav-item">
+                        <a href="{% url 'home' %}">
+                            <i class="fas fa-home"></i>
+                            <span>Inicio</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{% url 'crear_reporte' %}">
+                            <i class="fas fa-plus-circle"></i>
+                            <span>Crear Reporte</span>
+                        </a>
+                    </li>
+                    <li class="nav-item active">
+                        <a href="{% url 'editarReporte'%}">
+                            <i class="fas fa-edit"></i>
+                            <span>Editar Reporte</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{% url 'mapa'%}">
+                            <i class="fas fa-map"></i>
+                            <span>Mapa</span>
+                        </a>
+                    </li>
+                    <li class="nav-item has-dropdown">
+                        <a href="#">
+                            <i class="fas fa-search"></i>
+                            <span>Consulta de Reportes</span>
+                        </a>
+                        <ul class="submenu">
+                            <li class="submenu-item">
+                                <a href="{% url 'ver_reportes_main' %}">
+                                    <i class="fas fa-list"></i>
+                                    Ver Reportes
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                    
+                    <div class="menu-divider"></div>
+                    
+                    <li class="nav-item">
+                        <a href="{% url 'reporte_estadisticas_main' %}">
+                            <i class="fas fa-chart-bar"></i>
+                            <span>Estadísticas</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{% url 'top_listss' %}">
+                            <i class="fas fa-list-ol"></i>
+                            <span>Tabla de Posiciones</span>
+                        </a>
+                    </li>
+                </ul>
+
+                <div class="menu-footer">
+                    <button class="logout-btn" onclick="window.location.href='{% url 'exit_login' %}'">
+                        <i class="fas fa-sign-out-alt"></i>
+                        Cerrar Sesión
+                    </button>
+                </div>
+
+            </nav>
+        </div>
+    </header>
+
+    <div class="menu-overlay" id="menuOverlay"></div>
+
+    <main class="main-content">
+        <div class="form-container">
+            <div class="form-header">
+                <h1><i class="fas fa-edit"></i> EDITAR REPORTE</h1>
+                <p class="form-info">Folio: {{ reporte.folio }} | Creado: {{ reporte.fecha_creacion|date:"d/m/Y H:i" }}</p>
+            </div>
+
+            <!-- Mensajes de alerta -->
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }}">
+                        <i class="fas fa-{% if message.tags == 'success' %}check-circle{% else %}exclamation-circle{% endif %}"></i>
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            <form method="post" enctype="multipart/form-data" id="editForm">
+                {% csrf_token %}
+                
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="fecha">FECHA</label>
+                        <input type="date" id="fecha" name="fecha" value="{{ reporte.fecha }}" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="folio">FOLIO</label>
+                        <input type="text" id="folio" name="folio" value="{{ reporte.folio }}" placeholder="Ingresa solo números" style="text-transform: uppercase;" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="clave">CLAVE (solo número)</label>
+                        <input type="text" id="clave" name="clave" value="{{ reporte.clave }}" placeholder="Ejemplo: 910" style="text-transform: uppercase;" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="administrador">ADMINISTRADOR</label>
+                        <input type="text" id="administrador" name="administrador" value="{{ reporte.administrador }}" placeholder="Nombre administrador" style="text-transform: uppercase;" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>RUTA</label>
+                        <div class="radio-group">
+                            <div class="radio-option">
+                                <input type="radio" id="urbano" name="ruta" value="URBANO" {% if reporte.ruta == "URBANO" %}checked{% endif %}>
+                                <label for="urbano">URBANO</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="interbus" name="ruta" value="INTERBUS" {% if reporte.ruta == "INTERBUS" %}checked{% endif %}>
+                                <label for="interbus">INTERBUS</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="directo" name="ruta" value="DIRECTO" {% if reporte.ruta == "DIRECTO" %}checked{% endif %}>
+                                <label for="directo">DIRECTO</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="foraneo" name="ruta" value="FORANEO" {% if reporte.ruta == "FORANEO" %}checked{% endif %}>
+                                <label for="foraneo">FORANEO</label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="operador">OPERADOR</label>
+                        <input type="text" id="operador" name="operador" value="{{ reporte.operador }}" placeholder="Nombre operador" style="text-transform: uppercase;">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="damage_vehiculo">DAÑO VEHÍCULO</label>
+                        <input type="text" id="damage_vehiculo" name="damage_vehiculo" value="{{ reporte.damage_vehiculo }}" placeholder="Descripción del daño" style="text-transform: uppercase;">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="damage_bus">DAÑO VEHÍCULO ATB</label>
+                        <input type="text" id="damage_bus" name="damage_bus" value="{{ reporte.damage_bus }}" placeholder="Descripción del daño" style="text-transform: uppercase;">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="damage_others">DAÑO TERCEROS (1)</label>
+                        <input type="text" id="damage_others" name="damage_others" value="{{ reporte.damage_others }}" placeholder="Daño colateral" style="text-transform: uppercase;">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="damage_others2">DAÑO TERCEROS (2)</label>
+                        <input type="text" id="damage_others2" name="damage_others2" value="{{ reporte.damage_others2 }}" placeholder="Daño colateral" style="text-transform: uppercase;">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="damage_others3">DAÑO TERCEROS (3)</label>
+                        <input type="text" id="damage_others3" name="damage_others3" value="{{ reporte.damage_others3 }}" placeholder="Daño colateral" style="text-transform: uppercase;">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="ubicacion">UBICACIÓN DEL PERCANCE</label>
+                        <input type="text" id="ubicacion" name="ubicacion" value="{{ reporte.ubicacion }}" style="text-transform: uppercase;" required>
+                    </div>
+
+                    <div class="form-group d-flex align-items-center">
+                        <label for="costo_finiquito" class="me-3">MONTO</label>
+                        <div style="flex: 1;">
+                            <input type="text" step="0.01" id="costo_finiquito" name="costo_finiquito" value="{{ reporte.costo_finiquito|default:'' }}" placeholder="$ 0.00" required>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="observaciones">OBSERVACIONES</label>
+                    <textarea id="observaciones" name="observaciones" style="text-transform: uppercase;">{{ reporte.observaciones }}</textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label>RESPONSABILIDAD</label>
+                    <div class="radio-group">
+                        <div class="radio-option">
+                            <input type="radio" id="responsabilidad_si" name="responsabilidad" value="Si" {% if reporte.responsabilidad == "Si" %}checked{% endif %}>
+                            <label for="responsabilidad_si">Con responsabilidad</label>
+                        </div>
+                        <div class="radio-option">
+                            <input type="radio" id="responsabilidad_no" name="responsabilidad" value="No" {% if reporte.responsabilidad == "No" %}checked{% endif %}>
+                            <label for="responsabilidad_no">Sin responsabilidad</label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>AGREGAR UBICACIÓN EN MAPA</label>
+                    <button type="button" class="btn btn-primary" onclick="openMapModal()">
+                        Abrir Mapa
+                    </button>
+                    <input type="text" readonly id="coordinates" name="coordinates" value="{{ reporte.coordinates }}" placeholder="Coordenadas seleccionadas aparecerán aquí" style="margin-top: 10px; text-transform: uppercase;">
+                </div>
+
+                <div id="mapModal" class="modal">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title">Seleccionar Ubicación en el Mapa</h5>
+                                <button type="button" class="close" onclick="closeMapModal()">
+                                    <span>&times;</span>
+                                </button>
+                            </div>
+                            <div class="modal-body">
+                                <div id="map-canvas"></div>
+                                <div class="marker-panel">
+                                    <div class="marker-panel-header">
+                                        <strong>Marcadores (<span id="markerCount">0</span>)</strong>
+                                    </div>
+                                    <div class="marker-list-container" id="markerList">
+                                        <p style="color: #666; text-align: center;">Haz clic en el mapa para agregar marcadores</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <div>
+                                    <button type="button" class="btn btn-danger" onclick="clearAllMarkers()">
+                                        Limpiar Todo
+                                    </button>
+                                </div>
+                                <div>
+                                    <button type="button" class="btn btn-secondary" onclick="closeMapModal()">
+                                        Cerrar
+                                    </button>
+                                    <button type="button" class="btn btn-success" onclick="saveCoordinates()">
+                                        Guardar
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" 
+                        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" 
+                        crossorigin=""></script>
+                
+                <script>
+                    var map;
+                    var markers = [];
+                    var markerIdCounter = 1;
+
+                    // Cargar marcadores existentes si hay coordenadas guardadas
+                    function loadExistingMarkers() {
+                        var coordinatesField = document.getElementById('coordinates').value;
+                        if (coordinatesField && coordinatesField.trim() !== '') {
+                            try {
+                                var existingMarkers = JSON.parse(coordinatesField);
+                                existingMarkers.forEach(function(markerData) {
+                                    addMarker(markerData.lat, markerData.lng, markerData.id);
+                                    if (markerData.id >= markerIdCounter) {
+                                        markerIdCounter = markerData.id + 1;
+                                    }
+                                });
+                            } catch (e) {
+                                console.error('Error al cargar marcadores existentes:', e);
+                            }
+                        }
+                    }
+
+                    function openMapModal() {
+                        document.getElementById('mapModal').style.display = 'block';
+                        
+                        if (!map) {
+                            setTimeout(function() {
+                                initializeMap();
+                                loadExistingMarkers();
+                            }, 100);
+                        }
+                    }
+
+                    function closeMapModal() {
+                        document.getElementById('mapModal').style.display = 'none';
+                    }
+
+                    function initializeMap() {
+                        map = L.map('map-canvas').setView([19.5333673, -96.9186144], 14);
+                        
+                        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                            attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+                            maxZoom: 19
+                        }).addTo(map);
+                        
+                        map.on('click', function(e) {
+                            addMarker(e.latlng.lat, e.latlng.lng);
+                        });
+                    }
+
+                    function addMarker(lat, lng, existingId) {
+                        var markerId = existingId || markerIdCounter++;
+                        
+                        var customIcon = L.divIcon({
+                            html: '<div style="background-color: #3e4d9a; color: white; border-radius: 50%; width: 35px; height: 35px; display: flex; align-items: center; justify-content: center; font-weight: bold; border: 3px solid white; box-shadow: 0 2px 8px rgba(0,0,0,0.3);">' + markerId + '</div>',
+                            className: '',
+                            iconSize: [35, 35],
+                            iconAnchor: [17, 17]
+                        });
+                        
+                        var marker = L.marker([lat, lng], {
+                            icon: customIcon,
+                            draggable: true
+                        }).addTo(map);
+                        
+                        marker.bindPopup(
+                            '<div style="padding: 5px;"><strong>Marcador #' + markerId + '</strong><br>' +
+                            'Lat: ' + lat.toFixed(6) + '<br>' +
+                            'Lng: ' + lng.toFixed(6) + '</div>'
+                        );
+                        
+                        marker.on('dragend', function(e) {
+                            var position = e.target.getLatLng();
+                            updateMarkerCoordinates(markerId, position.lat, position.lng);
+                        });
+                        
+                        markers.push({
+                            id: markerId,
+                            marker: marker,
+                            lat: lat,
+                            lng: lng
+                        });
+                        
+                        updateMarkerList();
+                        updateMarkerCount();
+                        
+                        if (!existingId) {
+                            markerIdCounter++;
+                        }
+                    }
+
+                    function updateMarkerCoordinates(markerId, newLat, newLng) {
+                        var markerData = markers.find(m => m.id === markerId);
+                        if (markerData) {
+                            markerData.lat = newLat;
+                            markerData.lng = newLng;
+                            markerData.marker.setPopupContent(
+                                '<div style="padding: 5px;"><strong>Marcador #' + markerId + '</strong><br>' +
+                                'Lat: ' + newLat.toFixed(6) + '<br>' +
+                                'Lng: ' + newLng.toFixed(6) + '</div>'
+                            );
+                            updateMarkerList();
+                        }
+                    }
+
+                    function updateMarkerList() {
+                        var listContainer = document.getElementById('markerList');
+                        
+                        if (markers.length === 0) {
+                            listContainer.innerHTML = '<p style="color: #666; text-align: center;">Haz clic en el mapa para agregar marcadores</p>';
+                            return;
+                        }
+                        
+                        var html = '';
+                        markers.forEach(function(markerData) {
+                            html += '<div class="marker-item">' +
+                                    '<div class="marker-info">' +
+                                    '<strong>Marcador #' + markerData.id + '</strong><br>' +
+                                    '<small>Lat: ' + markerData.lat.toFixed(6) + ', Lng: ' + markerData.lng.toFixed(6) + '</small>' +
+                                    '</div>' +
+                                    '<button type="button" class="marker-delete-btn" onclick="removeMarker(' + markerData.id + ')">' +
+                                    '<i class="fas fa-trash"></i>' +
+                                    '</button>' +
+                                    '</div>';
+                        });
+                        
+                        listContainer.innerHTML = html;
+                    }
+
+                    function updateMarkerCount() {
+                        document.getElementById('markerCount').textContent = markers.length;
+                    }
+
+                    function removeMarker(markerId) {
+                        var index = markers.findIndex(m => m.id === markerId);
+                        if (index !== -1) {
+                            map.removeLayer(markers[index].marker);
+                            markers.splice(index, 1);
+                            updateMarkerList();
+                            updateMarkerCount();
+                        }
+                    }
+
+                    function clearAllMarkers() {
+                        if (confirm('¿Estás seguro de que deseas eliminar todos los marcadores?')) {
+                            markers.forEach(function(markerData) {
+                                map.removeLayer(markerData.marker);
+                            });
+                            markers = [];
+                            markerIdCounter = 1;
+                            updateMarkerList();
+                            updateMarkerCount();
+                        }
+                    }
+
+                    function saveCoordinates() {
+                        if (markers.length === 0) {
+                            alert('Por favor, agrega al menos un marcador en el mapa');
+                            return;
+                        }
+                        
+                        var coordinatesData = markers.map(function(markerData) {
+                            return {
+                                id: markerData.id,
+                                lat: markerData.lat,
+                                lng: markerData.lng
+                            };
+                        });
+                        
+                        document.getElementById('coordinates').value = JSON.stringify(coordinatesData);
+                        closeMapModal();
+                        
+                        alert('Se han guardado ' + markers.length + ' marcador(es)');
+                    }
+
+                    window.onclick = function(event) {
+                        var modal = document.getElementById('mapModal');
+                        if (event.target == modal) {
+                            closeMapModal();
+                        }
+                    }
+                </script>
+                
+                <div class="form-group">
+                    <label>QUALITAS</label>
+                    <div class="radio-group">
+                        <div class="radio-option">
+                            <input type="radio" id="intervino_si" name="intervino" value="Si Intervino" {% if reporte.intervino == "Si Intervino" %}checked{% endif %}>
+                            <label for="intervino_si">Intervino</label>
+                        </div>
+                        <div class="radio-option">
+                            <input type="radio" id="intervino_no" name="intervino" value="No intervino" {% if reporte.intervino == "No intervino" %}checked{% endif %}>
+                            <label for="intervino_no">No intervino</label>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="image-upload-section">
+                    <div class="image-upload-title">
+                        <i class="fas fa-images"></i>
+                        <h3>IMÁGENES DEL REPORTE</h3>
+                    </div>
+                    
+                    <div class="image-preview-container">
+                        <!-- Imagen 1 -->
+                        <div class="image-upload-box" id="image-box-1">
+                            {% if reporte.imagen1 %}
+                                <img class="preview-image active" id="preview-1" src="{{ reporte.imagen1.url }}">
+                                <span style="display: none;">Haz clic para cambiar imagen</span>
+                            {% else %}
+                                <i class="fas fa-camera"></i>
+                                <span>Haz clic para agregar imagen</span>
+                                <img class="preview-image" id="preview-1">
+                            {% endif %}
+                            <input type="file" id="imagen1" name="imagen1" accept="image/*" onchange="previewImage(this, 1)">
+                            <button type="button" class="remove-image-btn" onclick="removeImage(1)">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                        
+                        <!-- Imagen 2 -->
+                        <div class="image-upload-box" id="image-box-2">
+                            {% if reporte.imagen2 %}
+                                <img class="preview-image active" id="preview-2" src="{{ reporte.imagen2.url }}">
+                                <span style="display: none;">Haz clic para cambiar imagen</span>
+                            {% else %}
+                                <i class="fas fa-camera"></i>
+                                <span>Haz clic para agregar imagen</span>
+                                <img class="preview-image" id="preview-2">
+                            {% endif %}
+                            <input type="file" id="imagen2" name="imagen2" accept="image/*" onchange="previewImage(this, 2)">
+                            <button type="button" class="remove-image-btn" onclick="removeImage(2)">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                        
+                        <!-- Imagen 3 -->
+                        <div class="image-upload-box" id="image-box-3">
+                            {% if reporte.imagen3 %}
+                                <img class="preview-image active" id="preview-3" src="{{ reporte.imagen3.url }}">
+                                <span style="display: none;">Haz clic para cambiar imagen</span>
+                            {% else %}
+                                <i class="fas fa-camera"></i>
+                                <span>Haz clic para agregar imagen</span>
+                                <img class="preview-image" id="preview-3">
+                            {% endif %}
+                            <input type="file" id="imagen3" name="imagen3" accept="image/*" onchange="previewImage(this, 3)">
+                            <button type="button" class="remove-image-btn" onclick="removeImage(3)">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                        
+                        <!-- Imagen 4 -->
+                        <div class="image-upload-box" id="image-box-4">
+                            {% if reporte.imagen4 %}
+                                <img class="preview-image active" id="preview-4" src="{{ reporte.imagen4.url }}">
+                                <span style="display: none;">Haz clic para cambiar imagen</span>
+                            {% else %}
+                                <i class="fas fa-camera"></i>
+                                <span>Haz clic para agregar imagen</span>
+                                <img class="preview-image" id="preview-4">
+                            {% endif %}
+                            <input type="file" id="imagen4" name="imagen4" accept="image/*" onchange="previewImage(this, 4)">
+                            <button type="button" class="remove-image-btn" onclick="removeImage(4)">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                        
+                        <!-- Imagen 5 -->
+                        <div class="image-upload-box" id="image-box-5">
+                            {% if reporte.imagen5 %}
+                                <img class="preview-image active" id="preview-5" src="{{ reporte.imagen5.url }}">
+                                <span style="display: none;">Haz clic para cambiar imagen</span>
+                            {% else %}
+                                <i class="fas fa-camera"></i>
+                                <span>Haz clic para agregar imagen</span>
+                                <img class="preview-image" id="preview-5">
+                            {% endif %}
+                            <input type="file" id="imagen5" name="imagen5" accept="image/*" onchange="previewImage(this, 5)">
+                            <button type="button" class="remove-image-btn" onclick="removeImage(5)">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                        
+                        <!-- Imagen 6 -->
+                        <div class="image-upload-box" id="image-box-6">
+                            {% if reporte.imagen6 %}
+                                <img class="preview-image active" id="preview-6" src="{{ reporte.imagen6.url }}">
+                                <span style="display: none;">Haz clic para cambiar imagen</span>
+                            {% else %}
+                                <i class="fas fa-camera"></i>
+                                <span>Haz clic para agregar imagen</span>
+                                <img class="preview-image" id="preview-6">
+                            {% endif %}
+                            <input type="file" id="imagen6" name="imagen6" accept="image/*" onchange="previewImage(this, 6)">
+                            <button type="button" class="remove-image-btn" onclick="removeImage(6)">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <button type="submit" class="submit-btn">
+                    <i class="fas fa-save"></i> GUARDAR CAMBIOS
+                </button>
+            </form>
+            
+            <a href="{% url 'editarReporte' %}" class="back-btn">
+                <i class="fas fa-arrow-left"></i> REGRESAR
+            </a>
+        </div>
+    </main>
+
+    <script src="{% static 'tasks/js/menu.js' %}"></script>
+    <script src="{% static 'tasks/js/format_mont.js' %}"></script>
+    
+    <script>
+        function previewImage(input, number) {
+            const file = input.files[0];
+            const preview = document.getElementById('preview-' + number);
+            const box = document.getElementById('image-box-' + number);
+            
+            if (file) {
+                const reader = new FileReader();
+                
+                reader.onload = function(e) {
+                    preview.src = e.target.result;
+                    preview.classList.add('active');
+                    box.querySelector('.fas.fa-camera').style.display = 'none';
+                    box.querySelector('span').style.display = 'none';
+                    box.querySelector('.remove-image-btn').style.display = 'flex';
+                }
+                
+                reader.readAsDataURL(file);
+            }
+        }
+        
+        function removeImage(number) {
+            const input = document.getElementById('imagen' + number);
+            const preview = document.getElementById('preview-' + number);
+            const box = document.getElementById('image-box-' + number);
+            
+            input.value = '';
+            preview.src = '';
+            preview.classList.remove('active');
+            box.querySelector('.fas.fa-camera').style.display = 'block';
+            box.querySelector('span').style.display = 'block';
+            box.querySelector('.remove-image-btn').style.display = 'none';
+        }
+
+        // Auto-ocultar mensajes de alerta
+        document.addEventListener('DOMContentLoaded', function() {
+            const alerts = document.querySelectorAll('.alert');
+            alerts.forEach(function(alert) {
+                setTimeout(function() {
+                    alert.style.transition = 'opacity 0.5s';
+                    alert.style.opacity = '0';
+                    setTimeout(function() {
+                        alert.remove();
+                    }, 500);
+                }, 5000);
+            });
+        });
+
+        // Confirmación antes de salir si hay cambios
+        let formChanged = false;
+        const form = document.getElementById('editForm');
+        const formElements = form.querySelectorAll('input, textarea, select');
+        
+        formElements.forEach(element => {
+            element.addEventListener('change', () => {
+                formChanged = true;
+            });
+        });
+
+        window.addEventListener('beforeunload', (e) => {
+            if (formChanged) {
+                e.preventDefault();
+                e.returnValue = '¿Estás seguro de que quieres salir? Los cambios no guardados se perderán.';
+            }
+        });
+
+        form.addEventListener('submit', () => {
+            formChanged = false;
+        });
+    </script>
+    
+</body>
+</html>
